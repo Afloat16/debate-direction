@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>方向辩论 · 决策报告</title><style>
+:root{color-scheme:light;--ink:#172c38;--muted:#596c75;--teal:#116a65;--line:#d6e2e0;--paper:#f4f7f5}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.8 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}main{max-width:1050px;margin:auto;padding:48px 28px 70px}header{border-bottom:1px solid var(--line);padding-bottom:30px}.eyebrow{letter-spacing:.15em;font-size:12px;font-weight:800;color:var(--teal)}h1{font-size:clamp(30px,5vw,48px);line-height:1.2;margin:12px 0}h2{font-size:24px;margin:0 0 20px}h3{font-size:17px}p{overflow-wrap:anywhere}.subtitle,.muted{color:var(--muted)}.demo{background:#fff0c7;color:#644913;padding:12px 18px;border-radius:8px;margin:20px 0}.hero{padding:30px;background:white;border:1px solid var(--line);border-left:5px solid var(--teal);border-radius:12px;margin:28px 0}.hero h2{font-size:28px;line-height:1.4;margin:10px 0}.notice{font-size:14px;color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}section{margin-top:34px}.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px}ul{padding-left:22px;margin:0}li{margin:9px 0;overflow-wrap:anywhere}.exchange{display:flex;gap:20px;padding:20px 0;border-top:1px solid var(--line)}.round{font-size:24px;color:var(--teal);font-weight:750;min-width:34px}dl{margin:0;min-width:0}dt{font-weight:700;font-size:13px;color:var(--teal)}dd{margin:0 0 12px;overflow-wrap:anywhere}.issue{background:white;border:1px solid var(--line);border-radius:10px;padding:22px;margin:12px 0}.issue-head{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}.pill{font-size:12px;background:#edf3f2;color:#274c49;padding:3px 10px;border-radius:99px}details{color:var(--muted);font-size:14px}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.stat{border-top:2px solid var(--line);padding-top:12px;overflow-wrap:anywhere}.stat b{display:block;font-size:18px}.stat span{font-size:12px;color:var(--muted)}footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}@media(max-width:650px){main{padding:28px 18px}.grid{grid-template-columns:1fr}.hero{padding:22px}.stats{grid-template-columns:1fr 1fr}}@media print{body{background:white}main{padding:12px}.panel,.issue,.exchange{break-inside:avoid}details{display:none}}
+</style></head><body><main>
+<header><div class="eyebrow">DEBATE DIRECTION / 双 AGENT 方案审查</div><h1>把模糊需求，变成可验证的方向。</h1><p class="subtitle">记录提出、质疑与修订，也保留没有解决的问题。</p></header><div class="demo">固定离线演示 · 脚本示例 · 真实模型调用 0 次</div>
+<section class="hero"><div class="eyebrow">方向已收敛，进入验证</div><h2>先观察典型任务，再试点组合筛选和个人视图；保留旧入口并提供回退。</h2><p>修改客服工单后台，让客服更快找到需要处理的工单。团队只有两周时间，请找出可试点的方向。</p><p class="notice">展示已完成审查的方案 v2。</p><p class="notice">尚未实际核验 · 双方接受当前方向。双方认同并不证明方案正确或测试通过。</p></section>
+<section><h2>核心交锋</h2><p class="muted">反方独立开场：先独立检查瓶颈证据、两周范围、权限与可回退性。</p><article class="exchange"><span class="round">01</span><dl><dt>正方 · 方案 v1</dt><dd>优先重做搜索与智能推荐，同时列出小范围筛选试点备选。</dd><dt>反方 · 要求继续修订</dt><dd>整体重做缺少瓶颈证据，且权限约束没有落实到具体设计。</dd><dt>新增异议</dt><dd>I-001、I-002</dd></dl></article><article class="exchange"><span class="round">02</span><dl><dt>正方 · 方案 v2</dt><dd>撤回整体重做，改为可回退的小范围试点，并把权限检查列入上线条件。</dd><dt>反方 · 接受当前方向</dt><dd>接受小范围试点方向；瓶颈改善与性能仍须实测。</dd><dt>回应 I-001</dt><dd>接受范围和证据不足的异议，撤回整体重做。 改选 P2，先测量再试点。</dd><dt>回应 I-002</dt><dd>个人视图只保存筛选配置，仍由服务端按现有权限查询。 增加权限测试与失败回退条件。</dd></dl></article></section>
+<div class="grid"><section class="panel"><h2>实施步骤</h2><ul><li>观察典型工单查找任务并记录基线。</li><li>确认现有接口和权限约束。</li><li>做组合筛选、可切换排序与个人视图的小范围试点。</li><li>按事先约定的成功标准决定保留、调整或回退。</li></ul></section><section class="panel"><h2>后续验证</h2><ul><li>测量修改前后相同任务的完成时间及误操作。</li><li>检查角色权限、越权访问与保存视图的数据隔离。</li><li>在真实量级数据上检查查询响应时间。</li></ul></section></div>
+<section><h2>异议记录</h2><article class="issue"><div class="issue-head"><strong>I-001 · 重做范围缺少依据</strong><span class="pill">high / resolved</span></div><p>没有任务数据支持重做搜索，难以证明两周内值得投入。</p><p class="muted">解除条件：缩小改动范围，并先测量基线。</p><details><summary>处理记录</summary><pre>[
+  {
+    &quot;round&quot;: 1,
+    &quot;from&quot;: &quot;&quot;,
+    &quot;to&quot;: &quot;open&quot;,
+    &quot;rationale&quot;: &quot;没有任务数据支持重做搜索，难以证明两周内值得投入。&quot;
+  },
+  {
+    &quot;round&quot;: 2,
+    &quot;from&quot;: &quot;open&quot;,
+    &quot;to&quot;: &quot;resolved&quot;,
+    &quot;rationale&quot;: &quot;最新方案已撤回整体重做，改为先测量再试点。&quot;
+  }
+]</pre></details></article><article class="issue"><div class="issue-head"><strong>I-002 · 个人视图权限边界不清</strong><span class="pill">high / resolved</span></div><p>保存视图不能跳过服务端工单权限。</p><p class="muted">解除条件：将现有权限校验和隔离测试写入设计与上线条件。</p><details><summary>处理记录</summary><pre>[
+  {
+    &quot;round&quot;: 1,
+    &quot;from&quot;: &quot;&quot;,
+    &quot;to&quot;: &quot;open&quot;,
+    &quot;rationale&quot;: &quot;保存视图不能跳过服务端工单权限。&quot;
+  },
+  {
+    &quot;round&quot;: 2,
+    &quot;from&quot;: &quot;open&quot;,
+    &quot;to&quot;: &quot;resolved&quot;,
+    &quot;rationale&quot;: &quot;最新设计明确复用服务端权限，并列出隔离测试及回退条件。&quot;
+  }
+]</pre></details></article></section>
+<div class="grid"><section class="panel"><h2>前提与条件</h2><ul><li>团队可以邀请代表性客服参与短期试用。</li><li>现有接口能力尚需查看。</li><li>试点功能使用现有服务端权限校验。</li><li>若接口不支持所需筛选，应先调整试点范围。</li><li>接口、权限与真实性能检查通过后才开展试点。</li></ul></section><section class="panel"><h2>需要你补充</h2><ul><li>暂无记录。</li></ul><h3>下一步</h3><ul><li>测量修改前后相同任务的完成时间及误操作。</li><li>检查角色权限、越权访问与保存视图的数据隔离。</li><li>在真实量级数据上检查查询响应时间。</li><li>提供现有界面与典型工作流程，确定试点范围。</li></ul></section></div>
+<section><h2>运行记录</h2><div class="stats"><div class="stat"><b>demo-scripted</b><span>双方请求同一模型</span></div><div class="stat"><b>none</b><span>双方请求同一思考强度</span></div><div class="stat"><b>2 轮</b><span>已完成交锋</span></div><div class="stat"><b>5</b><span>Provider 调用（脚本示例）</span></div><div class="stat"><b>0</b><span>接口已报告 token</span></div><div class="stat"><b>demo</b><span>配置来源</span></div></div><p class="notice">CLI 不读取聊天界面的模型选择。接口报告模型：demo-scripted。用量阈值在返回后检查，进行中的调用可能超过阈值；错误请求的未报告用量未知。</p></section>
+<footer>Debate Direction · 公开论据摘要，不包含隐藏思考链。本程序不自动检索网页或执行测试；所有验证步骤都需要另行完成。</footer></main></body></html>
