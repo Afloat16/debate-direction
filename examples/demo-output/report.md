@@ -91,6 +91,7 @@ Observe representative tasks first, then pilot combined filters and personal vie
 
 ## Run record
 
+- Provider preset: demo
 - Requested model: demo-scripted
 - Reasoning effort: none
 - Configuration source: demo; the CLI does not read selections from the ChatGPT interface.
@@ -100,3 +101,4 @@ Observe representative tasks first, then pilot combined filters and personal vie
 - Reported token usage: 0; threshold: 150000
 - The usage threshold is checked after responses return and may be exceeded by calls already in progress; unreported usage from failed requests is unknown.
 - Actual tool validation: none. This program does not automatically browse the web, execute code or modify your systems.
+- Reasoning settings are provider-specific. provider_default means the caller chose the endpoint's default, without a claim of exact effort control.

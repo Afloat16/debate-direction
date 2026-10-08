@@ -87,6 +87,17 @@ class DebateEngine:
                 # consensus. Avoid exposing arbitrary exception text or secrets.
                 self._stop_reason = "engine_error"
                 self._error("engine_error", f"Debate interrupted by {type(exc).__name__}; no success was inferred")
+            cleanup = getattr(self.provider, "clear_session", None)
+            if callable(cleanup):
+                try:
+                    cleanup()
+                    self._cleanup_status = "cleared"
+                except Exception:
+                    # Cleanup must not discard completed public work or expose
+                    # private provider exception text. Preserve debate outcomes
+                    # while marking execution as partial and cleanup as failed.
+                    self._cleanup_status = "failed"
+                    self._error("cleanup_error", "Provider cleanup failed; private protocol state may remain in memory")
             return self._finish()
         finally:
             self._run_lock.release()
@@ -100,6 +111,7 @@ class DebateEngine:
         self.histories: dict[str, list[dict[str, str]]] = {"pro": [], "con": []}
         self._events: list[dict[str, Any]] = []
         self._errors: list[dict[str, Any]] = []
+        self._cleanup_status = "not_needed"
         self._callback_enabled = self.on_event is not None
         self._proposal: dict[str, Any] | None = None
         self._last_reviewed_proposal: dict[str, Any] | None = None
@@ -604,6 +616,8 @@ class DebateEngine:
                 decision = "conditional"
             else:
                 decision = "undetermined"
+        if self._cleanup_status == "failed":
+            status = "partial"
         conditions = list(self._proposal["conditions"]) if self._proposal else []
         next_steps = list(self._proposal["validation_steps"]) if self._proposal else []
         if self._last_review:
@@ -647,6 +661,7 @@ class DebateEngine:
             "stop_reason": reason,
             "decision": decision,
             "verification_status": "not_checked",
+            "cleanup_status": self._cleanup_status,
             "rounds_completed": self._rounds_completed,
             "proposal": self._proposal,
             "last_reviewed_proposal": self._last_reviewed_proposal,

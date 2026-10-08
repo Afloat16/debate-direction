@@ -2,167 +2,219 @@
 
 **Two agents propose, challenge and revise a direction before you commit to an ambiguous requirement.**
 
-The proposer develops concrete options. The critic looks for material counterexamples, unsupported assumptions and violated constraints. The coordinator maintains an issue ledger, checks proposal versions and produces a deterministic report of key exchanges, unresolved issues and validation steps.
+Give it a question and the relevant context. The proposer develops options; the critic finds material flaws. They revise the same proposal over several rounds, while a coordinator keeps an issue ledger and returns the core exchanges, the current recommendation, remaining disagreements and validation steps.
 
-Consensus is not proof of correctness. Two roles using the same model can share blind spots. The tool supports a clearer next decision; it does not certify feasibility or eliminate deception.
+Consensus is not proof of correctness. Two roles using the same model can share blind spots. The result is a direction to validate, with its assumptions still visible.
 
-[Simplified Chinese](README.zh-CN.md) · [Design](docs/design.md) · [Validation](docs/validation.md) · [Native example](docs/native-example.md) · [MIT](LICENSE)
+[Simplified Chinese](README.zh-CN.md) · [Installation guide](docs/installation.md) · [Providers](docs/providers.md) · [Host compatibility](skills/debate-direction/references/host-compatibility.md) · [Validation](docs/validation.md) · [MIT](LICENSE)
 
-## What it does
+## Install with one command
 
-- Turns a vague request into a goal, constraints, candidate options and acceptance criteria.
-- Starts the two roles independently before exchanging their public arguments.
-- Tracks every objection across proposal versions, including previously resolved issues.
-- Separates convergence, disagreement, missing information, stalled discussion and execution failures.
-- Produces Markdown, JSON and self-contained HTML decision reports.
-- Includes a fixed offline example that needs no API key.
+### macOS and Linux
 
-Project documentation, skill metadata, CLI messages, report labels and bundled examples are written in English. Debate responses default to English unless the user explicitly requests another language. User-supplied questions and context are preserved. A complete Chinese README is available through the link above.
-
-## Try the offline example
-
-Python 3.11+, with no third-party runtime dependencies:
-
-```bash
-PYTHONPATH=src python3 -m debate_direction --demo
+```sh
+curl -fsSL https://raw.githubusercontent.com/Afloat16/debate-direction/main/install.sh | sh
 ```
 
-Or install it in a virtual environment:
+### Windows PowerShell
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e .
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/Afloat16/debate-direction/main/install.ps1)))
+```
+
+The installer creates a per-user environment and obtains Python automatically through [uv](https://docs.astral.sh/uv/). You do not need to install Python or Git first. Initial installation needs internet access and a platform supported by uv's managed Python distributions. On Linux, the download command needs `curl`; the [installation guide](docs/installation.md) also covers alternatives, existing Python, WSL, updates and removal.
+
+Use the exact executable path printed by the installer immediately. If `debate-direction` is not on your PATH, use its printed command to add the directory to your current terminal; add that directory to your user PATH for future terminals. Installation does not edit shell profiles or require administrator privileges.
+
+Try the fixed offline example:
+
+```sh
 debate-direction --demo
 ```
 
-On Windows PowerShell, activate the environment with `.venv\Scripts\Activate.ps1`. Without installing, set `$env:PYTHONPATH = "src"` before running `python -m debate_direction --demo`.
+Open the generated `report.html`. The demo makes **zero model calls** and shows a proposal changing after criticism. It uses a fixed example and does not analyze custom questions.
 
-The example is explicitly scripted, makes **zero model calls**, and does not accept arbitrary user questions. Open the generated `report.html`; Markdown and JSON reports are also saved.
+## Use it inside Codex, Claude Code or Kimi Code
 
-The scripted exchange starts with a search rewrite and AI recommendations. The critic questions the missing bottleneck evidence, two-week scope and permission boundaries. The proposer switches to a measured, reversible pilot of combined filters and personal views, with permission checks and rollback conditions. The critic accepts that direction for validation; no production measurements or tests are claimed to have passed.
+Install the CLI and a native skill together by selecting your host:
 
-## Native skill and standalone CLI
+```sh
+curl -fsSL https://raw.githubusercontent.com/Afloat16/debate-direction/main/install.sh | sh -s -- --host codex
+```
 
-| | Native session skill | Standalone CLI |
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/Afloat16/debate-direction/main/install.ps1))) -Host claude
+```
+
+Choose `codex`, `claude`, `kimi`, or `all`. If the CLI is already installed:
+
+```sh
+debate-direction install-skill --host codex
+debate-direction install-skill --host claude
+debate-direction install-skill --host kimi
+```
+
+| Host | Default personal skill directory | Invoke in the host |
 | --- | --- | --- |
-| Entry point | A ChatGPT Work / Codex host with real subagents | Python 3.11+ |
-| Two roles | Two persistent native subagent threads | Two isolated role histories with live model calls |
-| Model and reasoning effort | Documented parent-session inheritance, without overrides | An explicit, shared configuration |
-| Separate API key | Not required | `OPENAI_API_KEY` for live calls |
-| Evidence tools | Those actually available and authorized in the host | No automatic browsing or test execution |
+| Codex | `~/.agents/skills/debate-direction` | `$debate-direction` |
+| Claude Code | `~/.claude/skills/debate-direction` | `/debate-direction` |
+| Current Kimi Code | `~/.kimi-code/skills/debate-direction`, or `$KIMI_CODE_HOME/skills/debate-direction` | `/skill:debate-direction` |
 
-The native skill at [`skills/debate-direction`](skills/debate-direction) creates exactly two real subagents in a compatible host. It reuses their threads and requests no model/effort overrides when the host documents parent-session inheritance. It checks host capability, never guesses a hidden UI setting, and does not impersonate two agents in a single reply. Install the entire directory using your host's supported skill installation workflow.
+Refresh the host's skill list or open a new session after installation. For example, in Codex:
 
-Example invocation:
-
-> Use $debate-direction. Have two agents debate how to improve our support-ticket dashboard within two weeks. Preserve current permissions. Return the core exchanges, recommended direction, remaining disagreements and validation steps.
-
-The skill defaults to two to four review rounds and keeps using the same agents. If the host cannot create two real subagents or guarantee model/effort inheritance, it reports that limitation. A request such as "Find feasible changes" without a subject or supporting context first needs the object and desired improvement clarified.
-
-The CLI creates two isolated role histories through an OpenAI Responses provider. Both roles receive the same immutable model and reasoning configuration. **It cannot read the ChatGPT model selector.** Explicit flags, caller-provided session JSON, or a complete environment-variable pair supply the configuration. Caller metadata is not authenticated proof of an external session's settings.
-
-## Live model calls
-
-The model and effort below are examples; replace them with the actual supported settings you want to preserve:
-
-```bash
-export OPENAI_API_KEY='your-api-key'
-debate-direction 'Which changes should we pilot in our support dashboard?' \
-  --model gpt-6-astra --reasoning-effort high \
-  --context-file examples/context.txt
+```text
+$debate-direction
+Find feasible changes to our support dashboard within two weeks.
+Preserve existing permissions. Return the core exchanges, recommended
+direction, unresolved issues and validation steps.
 ```
 
-Or provide a JSON file containing exactly `model` and `reasoning_effort`:
+**Native mode is the route for preserving the initiating conversation's model and reasoning effort.** It creates exactly two persistent child agents and continues the same pair. It requires applicable inheritance guarantees or runtime evidence for both settings. Conflicting subagent defaults, model fallback or unavailable resumable agents produce an explicit limitation. It does not infer hidden UI values or write fixed model overrides.
 
-```json
-{
-  "model": "gpt-6-astra",
-  "reasoning_effort": "high"
-}
+The installer copies the skill; it does not install or authenticate Codex, Claude Code or Kimi Code. Native debates reuse the host's existing authentication. [Host compatibility](skills/debate-direction/references/host-compatibility.md) documents each host's requirements and current official sources. A plain chat interface without real subagent tools cannot run native mode.
+
+Use `--project` for the current project, `--project PATH` for another project, or `--skills-dir PATH` for a custom or legacy skills root. Unchanged installations are a no-op. Modified skills are preserved unless `--force` is explicit; replacements keep a backup outside the scanned skills directory. Installation leaves host model settings unchanged.
+
+## Use DeepSeek, Kimi, Claude, OpenAI or Gemini through the CLI
+
+The standalone CLI supports six provider presets. Both agents use the same immutable provider, model and reasoning configuration. **The CLI cannot read another application's model selector.** Configure it explicitly once, or pass settings per run.
+
+| Preset | API | API key environment variable |
+| --- | --- | --- |
+| `openai` | OpenAI Responses | `OPENAI_API_KEY` |
+| `anthropic` | Anthropic Messages | `ANTHROPIC_API_KEY` |
+| `deepseek` | DeepSeek Chat Completions | `DEEPSEEK_API_KEY` |
+| `kimi` | Moonshot/Kimi Chat Completions | `MOONSHOT_API_KEY` |
+| `gemini` | Gemini's OpenAI-compatible endpoint | `GEMINI_API_KEY` |
+| `openai-compatible` | An explicitly selected compatible HTTPS endpoint | `OPENAI_COMPATIBLE_API_KEY` |
+
+A provider is distinct from a host: DeepSeek used inside Claude Code follows the Claude skill installation path. The CLI's DeepSeek preset connects directly to the DeepSeek API.
+
+### Configure once
+
+Run the guided setup:
+
+```sh
+debate-direction setup
 ```
 
-```bash
-debate-direction --question-file examples/question.txt \
-  --context-file examples/context.txt \
-  --session-config examples/session-config.example.json
+Or supply a complete configuration, for example:
+
+```sh
+debate-direction setup --provider deepseek --model deepseek-flash --reasoning-effort high
 ```
 
-Alternatively set both `DEBATE_MODEL` and `DEBATE_REASONING_EFFORT`. Partial sources are never silently mixed, and conflicting flags/session metadata are rejected. `.env.example` is documentation; the CLI does not automatically load dotenv files.
+Set the API key in the current terminal. macOS/Linux:
 
-Supply the API key through the environment; do not put it in questions, session configuration files or the repository.
+```sh
+export DEEPSEEK_API_KEY='your-api-key'
+```
 
-The native skill needs no separate API key. Live CLI runs require provider access. Unsupported settings, refusals, malformed output and incomplete responses fail visibly without model fallback or automatic retry.
+Windows PowerShell:
 
-## Protocol and reports
+```powershell
+$env:DEEPSEEK_API_KEY = 'your-api-key'
+```
 
-1. Run independent proposer and critic openings with no cross-role answer leakage.
-2. Critic reviews the first proposal; this is review round one.
-3. Proposer responds to every unresolved issue and creates a new version.
-4. Critic reviews that exact version, including the entire historical issue ledger.
-5. Stop on acceptance, missing input, stalled discussion, limits, cancellation or failure.
+Then ask questions without repeating the settings:
 
-The default is at least two and at most four review rounds, with at most nine provider calls. A critic must explicitly accept an actual response to close an issue. Omission, unilateral claims and old-version acceptance cannot silently close it. A remaining critical/high issue blocks readiness. No third model rewrites the final decision.
+```sh
+debate-direction "Which changes should we pilot in our support dashboard?"
+```
 
-Reports distinguish `status`, `stop_reason`, `decision` and `verification_status`. The CLI always uses `not_checked` for verification: it does not browse sources, execute code or run suggested tests. An issue marked `resolved` was addressed in the discussion, not empirically proven fixed.
+Setup saves only non-secret settings. It never asks for or stores your key. Use your normal environment or secret manager for credentials; `.env.example` is documentation and is not automatically loaded. See [provider configuration](docs/providers.md) for every preset, model-specific reasoning controls, regional endpoints and custom key-variable names.
+
+### Explicit settings or caller metadata
+
+```sh
+debate-direction "Which direction should we validate first?" --provider kimi --model kimi-k3 --reasoning-effort high
+```
+
+For a larger brief:
+
+```sh
+debate-direction --question-file examples/question.txt --context-file examples/context.txt --provider openai --session-config examples/session-config.example.json
+```
+
+Session JSON contains exactly `model` and `reasoning_effort`. It is caller-supplied configuration, not authenticated evidence of another chat session. Alternatively supply the complete pair `DEBATE_MODEL` and `DEBATE_REASONING_EFFORT`, with `DEBATE_PROVIDER` if needed.
+
+Explicit configuration takes precedence over automatic profile loading. A newly selected provider never silently reuses another provider's saved model. An explicit `--config PATH` must agree with any accompanying settings. Partial model/effort sources and conflicting pairs are rejected.
+
+### Reasoning settings are model-specific
+
+`high` is not a universal token budget. For example, current DeepSeek models expose `none`, `low`, `high`, and `max`; Kimi K3 exposes `low`, `high`, and `max`; some Kimi models expose only an enabled/disabled thinking control. The adapters validate supported controls and do not translate an unsupported label into a supposedly equivalent one.
+
+For a custom endpoint, `provider_default` explicitly omits an effort parameter and makes no promise of exact effort control. Literal effort pass-through requires the caller to verify that endpoint's semantics. Returned model identities are recorded; model drift stops the run. Provider-side hidden configuration cannot be independently attested by this CLI.
+
+## Helpful commands
+
+```sh
+debate-direction providers
+debate-direction doctor
+debate-direction install-skill --host all --dry-run
+debate-direction --help
+```
+
+`doctor` checks the local installation, saved profile, credential presence and skill locations. It prints no key values and makes no model calls. It does not certify native inheritance or live API access. Listing providers, diagnostics and skill installation support `--json` for machine-readable output.
+
+## How the debate works
+
+1. Run independent proposer and critic openings with separate public histories.
+2. Have the critic review the first proposal; this is review round one.
+3. Have the proposer respond to unresolved objections and create a new version.
+4. Have the critic review that exact version and every historical issue, including previously resolved ones.
+5. Stop on convergence, essential missing input, stalled discussion, limits, cancellation or failure.
+
+The default is at least two and at most four review rounds, with at most nine provider calls. Only the critic can accept an actual response and resolve an objection. Omission and old-version acceptance cannot close an issue. A remaining critical/high issue blocks readiness. A deterministic coordinator writes the final report; no third model changes the conclusion.
+
+If the request has no subject or context, the correct result may be a small set of essential clarification questions. Unknowns that can remain validation conditions need not prevent choosing a direction.
+
+## Results and evidence
+
+Every run saves `report.html`, `report.md` and `report.json`. Reports retain proposal versions, the objection ledger, public exchanges, provider/model configuration, reported usage, stopping reason and next steps.
 
 | Decision | Meaning |
 | --- | --- |
 | `ready_to_validate` | Both roles accept the current direction for real-world validation |
-| `conditional` | A conditional recommendation with retained risks or qualifications |
+| `conditional` | A recommendation with retained risks or qualifications |
 | `blocked` | Material unresolved issues prevent readiness |
 | `needs_clarification` | Missing information could change the decision |
 | `undetermined` | The execution or public record is insufficient for a complete conclusion |
 
-Outputs:
+The CLI always records `verification_status: not_checked`: it does not browse evidence, execute code or run suggested tests. An issue marked `resolved` was addressed in the discussion, not empirically proven fixed.
 
-- `report.html`: a script-free, self-contained, printable report.
-- `report.md`: a readable account of the recommendation, exchanges and issues.
-- `report.json`: full public records, versions, issue history, reported model identity and usage.
+Reports contain your question and context; review them before sharing. Private provider reasoning and signatures are excluded from reports and events. Adapters may temporarily retain required protocol fields separately in memory to continue the same role's conversation; they clear that state when the run ends. HTML is script-free and escapes model text.
 
-Reports include your question and context; review them before sharing. Hidden reasoning output is not included in debate records. Model text is escaped rather than executed as HTML.
+## Limits and failure behavior
 
-## Limits and exit codes
-
-```bash
-debate-direction 'Your question' \
-  --model gpt-6-astra --reasoning-effort high \
-  --min-rounds 2 --max-rounds 4 \
-  --max-output-tokens 12000 \
-  --max-total-tokens 150000 \
-  --timeout 180 --max-duration 900 \
-  --out runs/my-review
+```sh
+debate-direction "Your question" --min-rounds 2 --max-rounds 4 --max-output-tokens 12000 --max-total-tokens 150000 --timeout 180 --max-duration 900 --out runs/my-review
 ```
 
-Use `--max-rounds`, `--min-rounds`, `--stall-rounds`, `--max-output-tokens`, `--max-total-tokens`, `--timeout` and `--max-duration` to control the run. Reported token usage is checked after responses, so in-flight calls may exceed the threshold; this is not a precise spending cap. Output tokens include reasoning. Cancellation stops further calls, but already-sent requests may still be processed. Existing reports require explicit `--overwrite`.
+The example uses your saved profile. Explicit model/provider flags work with the same limit options. `--stall-rounds` controls how many unchanged rounds trigger a stop. Higher effort may need a larger output allowance; truncated, refused, malformed and incomplete responses do not count as acceptance.
 
-After the duration threshold, no new calls start; in-flight requests remain subject to their individual timeout. A truncated response is incomplete, not acceptance. Higher reasoning effort may require a larger output-token limit. Failed requests may have unreported usage.
+Usage and duration are observed stopping thresholds. In-flight requests can exceed them or finish later; failed calls may have unreported usage. No automatic retry or model fallback occurs. Cancellation prevents further calls but cannot revoke a request already processed by a provider. Existing reports require explicit `--overwrite`.
 
-`--json` writes the report to stdout; progress goes to stderr. `--quiet` suppresses progress.
+`--json` writes the report to stdout; progress stays on stderr. `--quiet` suppresses progress. Exit codes are `0` complete discussion, `1` configuration/input/filesystem error, `2` missing input or unresolved direction, `3` partial execution, and `130` cancellation. Exit code zero does not certify that the recommendation is correct.
 
-Exit codes: `0` complete discussion, `1` configuration/input/filesystem error, `2` missing input or undetermined direction, `3` partial execution, `130` cancellation. Exit code zero does not certify that the recommendation is correct.
+## Development and validation
 
-## Development
+Python 3.11+, with no third-party runtime dependencies:
 
-```bash
-PYTHONPATH=src python3 -m unittest discover -s tests -v
+```sh
+python -m pip install -e .
+python scripts/sync_skill.py --check
+python -m unittest discover -s tests -v
+debate-direction --demo
 ```
 
-Tests use deterministic providers and transport mocks; they need no key and do not establish live-model quality. To integrate another host, implement `provider.complete(...) -> Completion`, preserving configuration, returning honest usage/model metadata and supporting two concurrent openings.
+GitHub Actions runs platform checks on Windows, macOS and Linux, including package and installer exercises. Adapter tests use controlled transports and need no API keys. The [validation record](docs/validation.md) distinguishes actual checks, the prior native exercise, documentation-based host compatibility, and untested live provider combinations.
 
-The tests cover configuration consistency, isolated CLI openings, issue retention, outdated proposal acceptance, errors and truncation, cancellation, usage thresholds, report escaping and overwrite protection. See the [validation record](docs/validation.md) for the completed native exercise and the remaining validation limits. Native skill behavior must be exercised in a compatible host.
+To change the bundled native skill, edit `skills/debate-direction`, then run `python scripts/sync_skill.py` before building. An adapter implements `complete(...) -> Completion`, supports two concurrent openings, preserves the shared configuration and returns honest usage and model metadata. See [design](docs/design.md), [contribution instructions](CONTRIBUTING.md) and [security](SECURITY.md).
 
-Contribution and reporting instructions are in [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+v0.2 adds OS installers, local setup/diagnostics, native host installation and multiple API adapters. Automatic retrieval, executed validation, persisted debate resume, a hosted service and authenticated reading of another application's session settings remain outside the current implementation.
 
-## Scope and next steps
-
-The first version includes a native skill, the Responses CLI, ledger and reports. Retrieval, executed verification, persisted resume and additional host adapters are future work, not implemented claims.
-
-The tool does not automatically implement recommendations, provide a hosted web service or authenticate another application's session settings.
-
-## Official references
-
-Official references: [subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents), [reasoning](https://developers.openai.com/api/docs/guides/reasoning), [structured output](https://developers.openai.com/api/docs/guides/structured-outputs).
+Project descriptions, metadata, CLI messages, report labels and examples use English. Debate responses default to English unless explicitly requested otherwise; user input is preserved. [README.zh-CN.md](README.zh-CN.md) provides complete Chinese instructions.
 
 ## License
 

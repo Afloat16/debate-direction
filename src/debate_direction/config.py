@@ -13,7 +13,8 @@ class ConfigError(ValueError):
     """The caller must supply an unambiguous, supported configuration."""
 
 
-EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra")
+EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra",
+           "enabled", "disabled", "provider_default")
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,6 +30,7 @@ class SessionConfig:
     config_source: str = "explicit"
     max_duration_seconds: float = 900
     max_input_chars: int = 64000
+    provider: str = "openai"
 
     def __post_init__(self) -> None:
         if not isinstance(self.model, str) or not self.model.strip():
@@ -39,7 +41,9 @@ class SessionConfig:
             raise ConfigError("supply the exact model ID; the CLI cannot resolve the current chat model")
         if self.reasoning_effort not in EFFORTS:
             raise ConfigError("reasoning_effort must be one of: " + ", ".join(EFFORTS))
-        if self.config_source not in {"explicit", "session_config", "environment", "demo"}:
+        if not isinstance(self.provider, str) or not self.provider or any(c.isspace() for c in self.provider):
+            raise ConfigError("provider must be a preset name without whitespace")
+        if self.config_source not in {"explicit", "session_config", "environment", "saved_profile", "demo"}:
             raise ConfigError("config_source cannot claim native session inheritance")
         ranges = {
             "max_rounds": (1, 12), "min_rounds": (1, 12),

@@ -1,4 +1,6 @@
-include LICENSE README.md README.zh-CN.md CONTRIBUTING.md SECURITY.md
+include LICENSE README.md README.zh-CN.md CONTRIBUTING.md SECURITY.md CHANGELOG.md
+include install.sh install.ps1
+recursive-include scripts *.py
 recursive-include docs *.md
 recursive-include examples *.txt *.json *.md *.html
 recursive-include skills *.md *.yaml

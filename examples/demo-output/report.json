@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "run_id": "4109bac30f474da2bb0cf47fc6936094",
-  "started_at": "2026-10-08T03:48:33+00:00",
-  "finished_at": "2026-10-08T03:48:33+00:00",
+  "run_id": "86342e9c30e24ba9826cbca0707b8970",
+  "started_at": "2026-10-08T04:40:54+00:00",
+  "finished_at": "2026-10-08T04:40:54+00:00",
   "question": "Improve the support ticket dashboard so support staff can find tickets that need attention faster. The team has only two weeks; identify a direction suitable for a pilot.",
   "context": "Fixed demo context: a ticket list and access controls already exist. No user task timing data, API details or code have been provided. All proposals still require validation.",
   "config": {
@@ -16,7 +16,8 @@
     "stall_rounds": 2,
     "config_source": "demo",
     "max_duration_seconds": 900,
-    "max_input_chars": 64000
+    "max_input_chars": 64000,
+    "provider": "demo"
   },
   "roles": [
     "pro",
@@ -34,6 +35,7 @@
   "stop_reason": "converged",
   "decision": "ready_to_validate",
   "verification_status": "not_checked",
+  "cleanup_status": "not_needed",
   "rounds_completed": 2,
   "proposal": {
     "needs_clarification": false,
@@ -612,15 +614,15 @@
   "events": [
     {
       "type": "run_started",
-      "timestamp": "2026-10-08T03:48:33+00:00",
-      "run_id": "4109bac30f474da2bb0cf47fc6936094",
+      "timestamp": "2026-10-08T04:40:54+00:00",
+      "run_id": "86342e9c30e24ba9826cbca0707b8970",
       "model": "demo-scripted",
       "reasoning_effort": "none",
       "max_calls": 9
     },
     {
       "type": "call_started",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 1,
       "role": "pro",
       "phase": "propose",
@@ -629,7 +631,7 @@
     },
     {
       "type": "call_started",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 2,
       "role": "con",
       "phase": "risk_scan",
@@ -638,7 +640,7 @@
     },
     {
       "type": "call_completed",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 1,
       "role": "pro",
       "phase": "propose",
@@ -651,7 +653,7 @@
     },
     {
       "type": "call_completed",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 2,
       "role": "con",
       "phase": "risk_scan",
@@ -664,7 +666,7 @@
     },
     {
       "type": "proposal",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "round": 1,
       "version": 1,
       "public_summary": "Prioritize rebuilding search and adding smart recommendations, with a small filtering pilot as an alternative.",
@@ -672,14 +674,14 @@
     },
     {
       "type": "risk_scan",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "role": "con",
       "public_summary": "Independently assess the bottleneck evidence, two-week scope, permissions and reversibility.",
       "needs_clarification": false
     },
     {
       "type": "call_started",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 3,
       "role": "con",
       "phase": "review",
@@ -688,7 +690,7 @@
     },
     {
       "type": "call_completed",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 3,
       "role": "con",
       "phase": "review",
@@ -701,7 +703,7 @@
     },
     {
       "type": "review",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "round": 1,
       "proposal_version": 1,
       "pro_summary": "Prioritize rebuilding search and adding smart recommendations, with a small filtering pilot as an alternative.",
@@ -716,7 +718,7 @@
     },
     {
       "type": "call_started",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 4,
       "role": "pro",
       "phase": "revise",
@@ -725,7 +727,7 @@
     },
     {
       "type": "call_completed",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 4,
       "role": "pro",
       "phase": "revise",
@@ -738,7 +740,7 @@
     },
     {
       "type": "proposal",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "round": 2,
       "version": 2,
       "public_summary": "Withdraw the full rebuild in favor of a small, reversible pilot, with permission checks as a release condition.",
@@ -746,7 +748,7 @@
     },
     {
       "type": "call_started",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 5,
       "role": "con",
       "phase": "review",
@@ -755,7 +757,7 @@
     },
     {
       "type": "call_completed",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "call_number": 5,
       "role": "con",
       "phase": "review",
@@ -768,7 +770,7 @@
     },
     {
       "type": "review",
-      "timestamp": "2026-10-08T03:48:33+00:00",
+      "timestamp": "2026-10-08T04:40:54+00:00",
       "round": 2,
       "proposal_version": 2,
       "pro_summary": "Withdraw the full rebuild in favor of a small, reversible pilot, with permission checks as a release condition.",
@@ -804,8 +806,8 @@
     },
     {
       "type": "run_finished",
-      "timestamp": "2026-10-08T03:48:33+00:00",
-      "run_id": "4109bac30f474da2bb0cf47fc6936094",
+      "timestamp": "2026-10-08T04:40:54+00:00",
+      "run_id": "86342e9c30e24ba9826cbca0707b8970",
       "status": "completed",
       "decision": "ready_to_validate",
       "stop_reason": "converged",

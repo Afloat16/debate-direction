@@ -8,12 +8,16 @@ Turn an ambiguous requirement into a reviewable candidate direction, material ob
 
 | Path | How the agents run | Model and reasoning-effort source | Intended use |
 | --- | --- | --- | --- |
-| Native skill | The host creates two actual subagents and continues their existing threads through the debate | Documented parent-session inheritance supported by the host; no unrequested model override | Direct requests in compatible ChatGPT Work / Codex environments |
-| Python CLI | Two separate role histories handled by one Responses provider | Explicit arguments, caller-supplied JSON, or a complete environment-variable pair | Scripts, application integrations, and repeatable tests |
+| Native skill | The host creates two actual subagents and continues their existing threads through the debate | Applicable parent-session inheritance or runtime evidence; no fixed model override | Compatible hosted collaboration, Codex, Claude Code and Kimi Code environments |
+| Python CLI | Two separate role histories handled by one selected API provider | Explicit arguments, saved non-secret profile, caller-supplied JSON, or a complete environment-variable pair | Scripts, application integrations, and repeatable tests |
 
 The paths share protocol semantics while retaining their actual permissions and execution environments. In the CLI, `session_config` contains caller-supplied settings; it does not authenticate their origin. The model can share training biases across roles. Here, "independent" describes role contexts and blind openings, not statistical independence.
 
 ## CLI state transitions
+
+The provider registry separates transport compatibility from per-model reasoning capabilities. OpenAI Responses, Anthropic Messages and the profiled Chat Completions adapters all return the same public `Completion` contract. The same schema validator and deterministic ledger handle their output. Unsupported controls are rejected before a call; generic endpoint compatibility is an explicit caller declaration. [Provider configuration](providers.md) documents these limits.
+
+Provider-only continuation state is isolated by role and bound to the shared provider/model/effort. It never enters the engine's public histories. End-of-run cleanup invalidates in-flight writes as well as dropping existing state. Persisted resume is not implemented.
 
 1. Validate the single immutable configuration, input length, and budget.
 2. Run the proposer's initial proposal and the critic's blind risk scan concurrently. Neither opening receives the other role's answer.

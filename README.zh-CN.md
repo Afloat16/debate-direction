@@ -1,176 +1,221 @@
-# Debate Direction · 方向辩论
+# Debate Direction
 
-**让两个 agent 通过提案、反驳和修订，把模糊需求变成可以验证的方向。**
+**在投入实现一项模糊需求之前，先让两个 agent 提出方案、质疑并修订方向。**
 
-正方负责给出具体方案，反方负责找关键漏洞。每轮都保留问题编号、实际回应和方案版本，最后返回核心交锋、建议方向、未解决问题与验证步骤。
+给它一个问题和相关上下文。正方负责提出备选方案，反方负责找出重要缺陷。双方围绕同一个方案反复修订，协调器维护问题台账，最后返回核心交锋、当前建议、剩余分歧和验证步骤。
 
-**双方同意不等于方案已经正确或可行。** 项目帮助你更清楚地决定下一步；现实可行性仍需材料、测试和用户反馈来确认。相同模型的两个角色也可能共享盲区。
+共识不等于正确性证明。使用相同模型的两个角色也可能共享盲区。输出是一个有待验证的方向，其中的假设仍会明确保留。
 
-[English](README.md) · [协议设计](docs/design.md) · [验证记录](docs/validation.md) · [真实运行示例](docs/native-example.md) · [MIT License](LICENSE)
+[English](README.md) · [安装指南](docs/installation.md) · [模型服务商](docs/providers.md) · [宿主兼容性](skills/debate-direction/references/host-compatibility.md) · [验证记录](docs/validation.md) · [MIT](LICENSE)
 
-项目以英文作为默认语言：文档、技能说明、命令行提示、报告标签和内置示例均使用英文；本文件保留完整中文说明。辩论回复默认使用英文，也可以明确要求其他语言；用户提交的问题和上下文会保留原文。
+## 一条命令安装
 
-## 能做什么
+### macOS 和 Linux
 
-- 将“帮我找改进方向”拆成目标、约束、备选方案和验收标准。
-- 两个角色先独立开场，再交换公开论据；避免反方只跟着正方的框架走。
-- 逐轮追踪异议：正方不能自行关闭问题，反方不能靠省略让旧问题消失。
-- 只接受对当前方案版本的评审，保留每轮方案和关键修订。
-- 区分收敛、分歧、资料不足、停滞、轮数耗尽和调用故障。
-- 导出 Markdown、JSON 和没有外部依赖的 HTML 决策报告。
-- 用固定离线案例先了解流程，无需 API 密钥。
-
-## 两种使用方式
-
-| | 原生会话技能 | 独立命令行 |
-| --- | --- | --- |
-| 使用入口 | 支持子 agent 的 ChatGPT Work / Codex 宿主 | Python 3.11+ |
-| 两位 agent | 宿主实际创建、保持并继续两个子 agent 线程 | 两份隔离角色历史，经真实模型调用交锋 |
-| 模型与思考强度 | 按宿主支持的父会话继承规则，不覆盖配置 | 必须明确传入同一组参数 |
-| 单独 API 密钥 | 原生技能不需要 | 实际运行需要 `OPENAI_API_KEY` |
-| 证据能力 | 取决于宿主实际提供的工具与授权 | 不自动检索或执行测试，输出验证清单 |
-
-**关于“与提问会话一致”**：原生技能只能在宿主明确支持继承时承诺这一行为。CLI 不能读取 ChatGPT 的模型选择器。`--session-config` 是调用方传来的配置，不是对外部会话身份或设置的认证。两名角色每次请求共用不可变配置；不支持的模型或思考强度会报错，不会静默降级。
-
-## 先体验离线演示
-
-在仓库目录中运行，只有 Python 标准库，没有运行时第三方依赖：
-
-```bash
-PYTHONPATH=src python3 -m debate_direction --demo
+```sh
+curl -fsSL https://raw.githubusercontent.com/Afloat16/debate-direction/main/install.sh | sh
 ```
 
-程序输出一个新报告目录，打开其中的 `report.html`。也可以先安装命令：
+### Windows PowerShell
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e .
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/Afloat16/debate-direction/main/install.ps1)))
+```
+
+安装程序会为当前用户创建独立环境，并通过 [uv](https://docs.astral.sh/uv/) 自动获取 Python。无需事先安装 Python 或 Git。首次安装需要联网，运行平台也必须受到 uv 所使用的 Python 发行版支持。在 Linux 上，上述下载命令需要 `curl`；[安装指南](docs/installation.md) 还介绍其他安装方式、已有 Python 的使用方法、WSL、更新和卸载。
+
+安装完成后，可立即使用程序输出的完整可执行文件路径。如果终端还找不到 `debate-direction`，按输出提示把对应目录加入当前终端的 PATH；若要在以后的终端中直接使用，再把该目录加入用户 PATH。安装不会修改 shell 配置文件，也不需要管理员权限。
+
+先试试固定的离线示例：
+
+```sh
 debate-direction --demo
 ```
 
-Windows PowerShell：先运行 `.venv\Scripts\Activate.ps1`，再执行安装和命令行。未安装时可用 `$env:PYTHONPATH = "src"` 后运行 `python -m debate_direction --demo`。
+打开生成的 `report.html`。演示**不会调用任何模型**，用于展示方案如何因质疑而变化。它使用固定案例，不分析自定义问题。
 
-演示使用固定的客服工单案例和脚本回复，**真实模型调用为 0 次**。`--demo` 不接收自定义问题，避免把脚本内容冒充对任意问题的分析。
+## 在 Codex、Claude Code 或 Kimi Code 内使用
 
-演示中能看到这样的演变：
+选择宿主，即可同时安装 CLI 和原生技能：
 
-1. 正方提出重做搜索与智能推荐。
-2. 反方指出缺少瓶颈证据，整体重做范围过大，且权限边界不清。
-3. 正方改成先测量、再试点组合筛选和个人视图，补上权限测试与回退条件。
-4. 反方接受试点方向，结果进入验证阶段；没有声称生产数据或测试已通过。
-
-## 在当前会话中使用技能
-
-技能目录是 [`skills/debate-direction`](skills/debate-direction)。将整个目录安装到支持 Agent Skills 与真实子 agent 的宿主中，或者让宿主读取该目录的 `SKILL.md` 来执行。宿主必须确实提供子 agent 编排能力；仅支持聊天提示词的界面不满足要求。
-
-安装后可以直接说：
-
-> 使用 $debate-direction，让两个 agent 辩论：我们要改进客服工单后台，两周内优先做什么？已有状态筛选和关键词搜索，现有权限不能改变。请返回关键交锋、建议方向和验证步骤。
-
-技能默认完成至少 2 轮、最多 4 轮评审，并始终继续原有两个 agent。若宿主无法保证模型/强度继承，或不能创建两个真实子 agent，会说明限制，不会用一条回复假扮双方。
-
-如果你只说“为我找出可行的修改方案”，而没有任何修改对象或上下文，技能会先要求补齐最关键的信息。
-
-## 用真实模型运行 CLI
-
-设置 API 密钥，以及你实际希望双方使用的模型和思考强度。以下示例的模型和 `high` **只是示例配置**，请按自己的调用权限及发起会话的实际设置替换：
-
-```bash
-export OPENAI_API_KEY='your-api-key'
-
-debate-direction \
-  '我们的工单后台查找很慢，两周内有哪些可试点的改进方向？' \
-  --model gpt-6-astra \
-  --reasoning-effort high \
-  --context-file examples/context.txt
+```sh
+curl -fsSL https://raw.githubusercontent.com/Afloat16/debate-direction/main/install.sh | sh -s -- --host codex
 ```
 
-也可以由上层应用传入整组配置：
-
-```json
-{
-  "model": "gpt-6-astra",
-  "reasoning_effort": "high"
-}
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/Afloat16/debate-direction/main/install.ps1))) -Host claude
 ```
 
-```bash
-debate-direction \
-  --question-file examples/question.txt \
-  --context-file examples/context.txt \
-  --session-config examples/session-config.example.json
+可选值为 `codex`、`claude`、`kimi` 或 `all`。如果已经安装了 CLI：
+
+```sh
+debate-direction install-skill --host codex
+debate-direction install-skill --host claude
+debate-direction install-skill --host kimi
 ```
 
-第三种方式是同时设置 `DEBATE_MODEL` 与 `DEBATE_REASONING_EFFORT`。程序不把显式参数和环境变量拼成来源不明的半组配置；与 `--session-config` 冲突的参数也会被拒绝。
+| 宿主 | 默认个人技能目录 | 在宿主中的调用方式 |
+| --- | --- | --- |
+| Codex | `~/.agents/skills/debate-direction` | `$debate-direction` |
+| Claude Code | `~/.claude/skills/debate-direction` | `/debate-direction` |
+| 当前版本的 Kimi Code | `~/.kimi-code/skills/debate-direction`，或 `$KIMI_CODE_HOME/skills/debate-direction` | `/skill:debate-direction` |
 
-`.env.example` 仅作为设置说明，CLI 不自动读取 `.env`。API 密钥只通过环境变量输入，不要写进问题、会话配置或仓库。
+安装后刷新宿主的技能列表，或开启新会话。例如在 Codex 中输入：
 
-## 输出长什么样
+```text
+$debate-direction
+Find feasible changes to our support dashboard within two weeks.
+Preserve existing permissions. Return the core exchanges, recommended
+direction, unresolved issues and validation steps.
+```
 
-每次运行生成：
+**若要保留发起会话的模型和思考强度，应使用原生模式。** 它会创建且只创建两个持续保留的子 agent，并始终继续同一对角色。模型和思考强度这两项设置，都必须有适用于当前宿主的继承保证或运行时证据。子 agent 默认配置发生冲突、出现模型回退，或宿主没有可恢复的 agent 时，程序会明确说明限制。它不会猜测界面中不可见的设置，也不会写入固定模型来覆盖会话配置。
 
-| 文件 | 内容 |
+安装程序只复制技能，不会安装 Codex、Claude Code 或 Kimi Code，也不会替这些宿主登录。原生辩论复用宿主已有的身份认证。[宿主兼容性](skills/debate-direction/references/host-compatibility.md) 记录了各宿主的要求和当前官方资料。没有真实子 agent 工具的普通聊天界面无法运行原生模式。
+
+使用 `--project` 可安装到当前项目，使用 `--project PATH` 可安装到其他项目，使用 `--skills-dir PATH` 可指定自定义或旧版技能根目录。内容相同的重复安装不会执行修改。已被改动的技能会保留，只有明确传入 `--force` 才允许替换；替换时会在宿主扫描的技能目录之外保留备份。安装不会改变宿主的模型设置。
+
+## 通过 CLI 使用 DeepSeek、Kimi、Claude、OpenAI 或 Gemini
+
+独立 CLI 提供六种服务商预设。两个 agent 使用同一组不可变的服务商、模型和思考配置。**CLI 无法读取其他应用的模型选择器。** 可以明确配置一次，也可以在每次运行时传入参数。
+
+| 预设 | API | API 密钥环境变量 |
+| --- | --- | --- |
+| `openai` | OpenAI Responses | `OPENAI_API_KEY` |
+| `anthropic` | Anthropic Messages | `ANTHROPIC_API_KEY` |
+| `deepseek` | DeepSeek Chat Completions | `DEEPSEEK_API_KEY` |
+| `kimi` | Moonshot/Kimi Chat Completions | `MOONSHOT_API_KEY` |
+| `gemini` | Gemini 的 OpenAI 兼容接口 | `GEMINI_API_KEY` |
+| `openai-compatible` | 明确指定的兼容 HTTPS 接口 | `OPENAI_COMPATIBLE_API_KEY` |
+
+服务商与宿主是两个概念：如果在 Claude Code 中使用 DeepSeek，应按 Claude 的方式安装技能；CLI 的 DeepSeek 预设则直接连接 DeepSeek API。
+
+### 配置一次，重复使用
+
+运行引导式设置：
+
+```sh
+debate-direction setup
+```
+
+也可以提供完整配置，例如：
+
+```sh
+debate-direction setup --provider deepseek --model deepseek-flash --reasoning-effort high
+```
+
+在当前终端设置 API 密钥。macOS/Linux：
+
+```sh
+export DEEPSEEK_API_KEY='your-api-key'
+```
+
+Windows PowerShell：
+
+```powershell
+$env:DEEPSEEK_API_KEY = 'your-api-key'
+```
+
+然后就可以直接提问，无需重复填写设置：
+
+```sh
+debate-direction "Which changes should we pilot in our support dashboard?"
+```
+
+设置功能只保存非敏感配置，不会索取或保存密钥。请通过平时使用的环境变量或密钥管理工具提供凭据；`.env.example` 只是说明文件，不会被自动加载。[服务商配置](docs/providers.md) 介绍了各个预设、模型特定的思考控制、区域接口和自定义密钥变量名。
+
+### 显式参数或调用方元数据
+
+```sh
+debate-direction "Which direction should we validate first?" --provider kimi --model kimi-k3 --reasoning-effort high
+```
+
+对于较长的需求说明：
+
+```sh
+debate-direction --question-file examples/question.txt --context-file examples/context.txt --provider openai --session-config examples/session-config.example.json
+```
+
+会话 JSON 必须且仅包含 `model` 和 `reasoning_effort`。它是调用方提供的配置，不是对其他聊天会话的认证证据。也可以同时提供完整的一组 `DEBATE_MODEL` 与 `DEBATE_REASONING_EFFORT`，必要时再设置 `DEBATE_PROVIDER`。
+
+显式配置优先于自动加载的已保存配置。新选择的服务商不会静默沿用另一服务商保存的模型。显式传入 `--config PATH` 时，其内容必须与同时提供的设置一致。只有半组模型／强度配置，或者不同来源的完整配置彼此冲突，都会被拒绝。
+
+### 思考设置因模型而异
+
+`high` 不是统一的 token 预算。例如，当前 DeepSeek 模型提供 `none`、`low`、`high` 和 `max`；Kimi K3 提供 `low`、`high` 和 `max`；部分 Kimi 模型只提供开启／关闭思考的控制。适配器会验证模型支持哪些控制，不会把不支持的标签转换成一个声称等价的设置。
+
+对于自定义接口，`provider_default` 表示明确省略思考强度参数，不承诺精确控制强度。若要直接透传强度标签，调用方必须先确认该接口对标签的实际定义。程序会记录接口返回的模型标识；发生模型漂移时会停止。CLI 无法独立验证服务商内部隐藏的配置。
+
+## 常用命令
+
+```sh
+debate-direction providers
+debate-direction doctor
+debate-direction install-skill --host all --dry-run
+debate-direction --help
+```
+
+`doctor` 检查本地安装、已保存的配置、凭据是否存在，以及技能所在位置。它不会输出密钥值，也不会调用模型。它不能认证原生模式的继承行为或实际 API 访问能力。服务商列表、诊断和技能安装命令均支持 `--json`，方便程序读取结果。
+
+## 辩论如何运行
+
+1. 正方与反方分别独立开场，维护各自分离的公开历史。
+2. 反方评审第一版方案，这计为第一轮评审。
+3. 正方逐项回应未决异议，并提交新版本。
+4. 反方评审这个确切版本，以及全部历史问题，包括此前已经解决的项。
+5. 达成收敛、缺少必要输入、讨论停滞、触及限制、被取消或发生故障时停止。
+
+默认至少两轮、最多四轮评审，最多九次服务商调用。只有反方接受了实际答复，异议才能被解决。省略问题或认可旧版本都不能关闭异议。仍有 critical/high 级别的问题时，不能进入就绪状态。最终报告由确定性协调器生成，不会增加第三个模型来改写结论。
+
+如果问题没有明确对象或上下文，合理结果可能只是几条必要的澄清问题。可以留作验证条件的未知项，不必阻止先选择一个方向。
+
+## 结果与证据
+
+每次运行会保存 `report.html`、`report.md` 和 `report.json`。报告保留方案版本、异议台账、公开交锋、服务商／模型配置、已上报用量、停止原因和后续步骤。
+
+| 判断 | 含义 |
 | --- | --- |
-| `report.html` | 可直接打开、可打印的结果页；显示核心交锋、异议与下一步 |
-| `report.md` | 方便阅读与复核的文本报告 |
-| `report.json` | 完整公开记录、问题历史、方案版本、调用用量及停止原因 |
+| `ready_to_validate` | 两个角色都接受当前方向，可以进入现实验证 |
+| `conditional` | 建议仍附带需要保留的风险或条件 |
+| `blocked` | 重要的未决问题阻止进入就绪状态 |
+| `needs_clarification` | 缺失信息可能改变决策 |
+| `undetermined` | 执行过程或公开记录不足以支持完整结论 |
 
-报告包含你提交的问题和上下文；发布或分享前应自行检查。原始隐藏推理不被收集为辩论记录。HTML 不执行模型文本或加载外部脚本。
+CLI 始终记录 `verification_status: not_checked`：它不会自动浏览证据、执行代码或运行建议中的测试。问题被标为 `resolved`，只表示它在讨论中得到处理，不表示已经实证修复。
 
-关键状态分别表示：
+报告包含你的问题和上下文，分享前请先检查。服务商的私有推理和签名不会出现在报告与事件中。为了延续同一角色的会话，适配器可能在内存中单独暂存接口要求的协议字段，并在运行结束时清除。HTML 不包含脚本，并对模型文本进行转义。
 
-| 结果 | 含义 |
-| --- | --- |
-| `ready_to_validate` | 双方接受当前方向，进入现实验证 |
-| `conditional` | 有条件建议，仍有已接受风险或保留事项 |
-| `blocked` | 仍有严重问题阻断推进 |
-| `needs_clarification` | 缺少会改变决策的关键信息 |
-| `undetermined` | 调用、结构或流程不完整，不能形成完整结论 |
+## 限制与故障处理
 
-CLI 的 `verification_status` 始终为 `not_checked`。`resolved` 表示某条异议在论证中被处理，不表示该问题已经通过真实测试。
-
-## 控制深度和消耗
-
-```bash
-debate-direction '你的问题' \
-  --model gpt-6-astra --reasoning-effort high \
-  --min-rounds 2 --max-rounds 4 \
-  --max-output-tokens 12000 \
-  --max-total-tokens 150000 \
-  --timeout 180 --max-duration 900 \
-  --out runs/my-review
+```sh
+debate-direction "Your question" --min-rounds 2 --max-rounds 4 --max-output-tokens 12000 --max-total-tokens 150000 --timeout 180 --max-duration 900 --out runs/my-review
 ```
 
-- 默认最大 4 轮、最多 9 次 provider 调用；独立开场并行，后续交锋顺序进行。
-- `max_output_tokens` 包含推理 token。高强度运行可能需要提高这个值；截断被视为未完成，不会当作认可。
-- `max_total_tokens` 是已返回用量的停止阈值，进行中的调用可能超过它；它不是精确的金额上限。
-- 总时长达到阈值后不再发起新调用，进行中的请求受单次 timeout 限制。
-- 不自动重试，不自动切换模型。取消后停止启动后续调用；已经发出的请求可能仍由服务端处理。
-- 已存在的报告不会默认覆盖。明确使用 `--overwrite` 才会替换同名报告。
+该示例使用你已保存的配置。显式传入模型／服务商参数时，也可以搭配相同的限制选项。`--stall-rounds` 控制连续多少轮没有变化后停止。更高的思考强度可能需要更大的输出额度；截断、拒绝、格式错误和不完整响应都不会计为认可。
 
-`--json` 将完整 JSON 写到标准输出，进度留在标准错误；`--quiet` 隐藏进度。退出码：`0` 表示完整讨论，`1` 是配置/输入/文件错误，`2` 是需要信息或无法确定方向，`3` 是部分完成，`130` 是取消。**退出码 0 也不代表方案已被验证正确。**
+用量和总时长是根据实际观察值判断的停止阈值。正在处理的请求可能使阈值被超过，或在时限之后才完成；失败调用也可能有未上报的用量。程序不会自动重试或回退到其他模型。取消会阻止后续调用，但无法撤回服务商已经处理的请求。已有报告只有在明确传入 `--overwrite` 时才会被覆盖。
 
-## 开发与测试
+`--json` 把报告写到标准输出，进度仍写到标准错误；`--quiet` 隐藏进度。退出码：`0` 表示完整讨论，`1` 表示配置／输入／文件系统错误，`2` 表示缺少输入或方向仍未确定，`3` 表示部分执行，`130` 表示取消。退出码为零不代表建议已经被证明正确。
 
-```bash
-PYTHONPATH=src python3 -m unittest discover -s tests -v
+## 开发与验证
+
+需要 Python 3.11+，没有第三方运行时依赖：
+
+```sh
+python -m pip install -e .
+python scripts/sync_skill.py --check
+python -m unittest discover -s tests -v
+debate-direction --demo
 ```
 
-测试使用假 provider 和受控回复，覆盖模型配置、初始上下文隔离、异议不能丢失、过期版本认可、错误与截断、取消、预算边界、报告转义和文件覆盖。离线测试不需要密钥，也不证明模型生成质量。原生技能需要在有子 agent 能力的宿主中演练。
+GitHub Actions 会在 Windows、macOS 和 Linux 上运行平台检查，包括包安装和安装器演练。适配器测试使用受控传输，不需要 API 密钥。[验证记录](docs/validation.md) 区分实际完成的检查、之前的原生演练、依据文档判断的宿主兼容性，以及尚未测试的真实服务商组合。
 
-扩展集成可实现 `provider.complete(...) -> Completion` 并复用 `DebateEngine`。自定义 provider 需支持两个同时进行的开场调用、返回真实用量和接口模型元数据，并尊重传入的模型/强度配置。具体字段见源码和 [协议设计](docs/design.md)。
+修改随包分发的原生技能时，编辑 `skills/debate-direction`，再于构建前运行 `python scripts/sync_skill.py`。适配器应实现 `complete(...) -> Completion`，支持两个并发开场，保持共享配置，并返回真实的用量和模型元数据。详见[设计说明](docs/design.md)、[贡献指南](CONTRIBUTING.md)和[安全说明](SECURITY.md)。
 
-## 已有范围与后续方向
+v0.2 增加了各操作系统的安装器、本地设置／诊断、原生宿主技能安装，以及多个 API 适配器。自动检索、执行验证、从持久记录恢复辩论、托管服务，以及经过认证地读取其他应用的会话设置，仍不属于当前实现。
 
-v0.1 提供原生技能、Responses API CLI、确定性问题账本、报告与离线测试。后续可依据实际失败案例增加材料检索、可复用验证记录、从已保存报告继续讨论，以及更多明确传递模型设置的宿主适配。当前版本没有自动实施修改、网页服务或可认证的跨应用会话设置读取功能。
+项目说明、元数据、CLI 提示、报告标签和示例均使用英文。辩论回复默认使用英文，除非明确要求其他语言；用户输入保留原文。[README.zh-CN.md](README.zh-CN.md) 提供完整中文使用说明。
 
-## 官方资料
+## 许可证
 
-- [子 agent、模型与思考强度继承](https://learn.chatgpt.com/docs/agent-configuration/subagents)
-- [Responses API 推理参数与 token 限制](https://developers.openai.com/api/docs/guides/reasoning)
-- [结构化输出](https://developers.openai.com/api/docs/guides/structured-outputs)
-
-## License
-
-[MIT](LICENSE)。欢迎使用、修改和贡献。
+[MIT](LICENSE)。欢迎贡献和改编。

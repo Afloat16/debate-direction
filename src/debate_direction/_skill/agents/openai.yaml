@@ -1,0 +1,4 @@
+interface:
+  display_name: "Debate Direction"
+  short_description: "Two real agents debate needs and produce testable directions"
+  default_prompt: "Use $debate-direction to debate my ambiguous request with two agents and return the key exchanges, unresolved issues, and next validation steps."

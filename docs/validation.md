@@ -1,10 +1,29 @@
-# Debate Direction v0.1 validation record
+# Debate Direction validation record
 
 Validation date: 2026-10-08. The results below describe separate coverage of implementation, orchestration, and generated-output quality. Evidence for one does not substitute for evidence for another.
 
-The English-language documentation update does not constitute a new native-agent exercise or a live Responses API run.
+## v0.2 installation and provider coverage
 
-## Completed checks
+The v0.2 update adds one-command OS installers, safe host skill installation, non-secret profiles and six provider presets. Its checks are separate from the earlier native-agent exercise below.
+
+| Check | Observed result | Boundary |
+| --- | --- | --- |
+| Python 3.12 local regression suite | 164 collected: 162 passed, 2 PowerShell checks skipped; see CI for platform totals | Controlled transports and local fixtures, no live model calls |
+| Real uv installation from a local v0.2 wheel | Installed twice, version/demo passed, all three project skills installed, unchanged rerun verified, isolated CLI removed | Existing uv 0.12.19 and a preloaded managed Python 3.12.14 fixture; no fresh bootstrap download |
+| Shell installer boundary tests | 10 passed | Mock executables check options, quoting, explicit host selection and failures |
+| PowerShell parsing and help tests | Skipped locally because PowerShell is unavailable | Executed by the Windows CI job; local skips are not Windows acceptance |
+| Saved profiles and native skill writes | 36 focused regression tests passed | Preserves customizations, rejects malformed URLs and conflicting sources, excludes key values, keeps backups, reports partial installation scope |
+| Full engine through all six actual adapters | 8 integration tests passed with controlled provider envelopes, including lifecycle/cancellation cases | Verifies public/private history integration; makes no live provider calls |
+| Native skill structure and bundled copy | Structure valid; source and packaged skill match | File validity and discovery paths do not prove host runtime inheritance |
+| Documentation | English/Chinese command blocks match; local links resolve | Provider and host capability descriptions are based on current primary documentation |
+
+The GitHub Actions matrix runs Python 3.11 and 3.13 on Windows, macOS and Linux. Each job runs regression tests, the fixed demo, wheel construction, package installation and bundled-skill checks. The Python 3.11 jobs also run the real OS installer twice, exercise all host destinations in a temporary project, verify unchanged reruns, and uninstall the isolated CLI. Consult [the actual workflow runs](https://github.com/Afloat16/debate-direction/actions/workflows/ci.yml) for each commit's results.
+
+Provider adaptation checks cover exact model/effort parameters, completed public JSON, refusal/truncation handling, reported model identity and usage, isolated private replay, generation invalidation after cancellation, and endpoint safety. Gemini usage tests include thinking tokens reported outside the completion count. Kimi tests preserve optional continuation fields exactly. These are mocked transport assertions, not proof that every account/model combination works online.
+
+The release environment has no provider API credentials and no local Codex, Claude Code or Kimi Code executable. No live multi-provider debate or new cross-host native debate is claimed. The bootstrap download paths are documented and Windows archive checksums were compared with Astral's official release; installer smoke tests that reuse uv do not exercise fresh-machine bootstrap. Architecture routing and upstream distribution availability do not replace physical-machine coverage.
+
+## Earlier v0.1 checks and native exercise
 
 | Check | Result | What it supports |
 | --- | --- | --- |
@@ -41,7 +60,7 @@ The skill protocol was subsequently clarified: `needs_clarification` is reserved
 - **HTML did not receive a visual acceptance check in a browser.** Dependencies needed for local browser execution were unavailable, and the cloud browser's security policy did not permit local `file:` previews. Exported content, escaping, and the absence of external scripts were checked; those checks were not presented as screenshot-based acceptance.
 - There has been no cross-host validation, long-running deployment, real API cost benchmark, or large-sample evaluation of proposal quality. The project cannot promise that two agents are always more accurate than one.
 
-GitHub Actions is configured to run offline tests, the demonstration, and installation checks on Python 3.11, 3.12, and 3.13. The repository's Actions records are the source for the outcome of each remote run.
+The v0.2 matrix described above supersedes the earlier Ubuntu-only CI configuration. The repository's Actions records are the source for each remote run's outcome.
 
 ## Reproduce the offline checks
 

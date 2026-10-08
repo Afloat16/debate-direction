@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "debate-direction"
-version = "0.1.0"
+version = "0.2.0"
 description = "Two-agent debate for turning ambiguous requests into reviewable directions"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "Afloat16"}]
-keywords = ["agents", "debate", "requirements", "reasoning", "codex"]
+keywords = ["agents", "debate", "requirements", "reasoning", "codex", "claude", "deepseek", "kimi"]
 dependencies = []
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -24,5 +24,13 @@ classifiers = [
 [project.scripts]
 debate-direction = "debate_direction.cli:main"
 
+[project.urls]
+Repository = "https://github.com/Afloat16/debate-direction"
+Documentation = "https://github.com/Afloat16/debate-direction#readme"
+Issues = "https://github.com/Afloat16/debate-direction/issues"
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+debate_direction = ["_skill/*.md", "_skill/agents/*.yaml", "_skill/references/*.md"]

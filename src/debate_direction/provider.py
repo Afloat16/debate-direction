@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from .config import SessionConfig
+from . import __version__
 
 
 class ProviderError(RuntimeError):
@@ -85,7 +86,7 @@ class OpenAIResponsesProvider:
                                  "strict": True, "schema": schema}},
         }
         headers = {"Authorization": "Bearer " + self._api_key,
-                   "Content-Type": "application/json", "User-Agent": "debate-direction/0.1.0"}
+                   "Content-Type": "application/json", "User-Agent": "debate-direction/" + __version__}
         try:
             result = self._transport(self._url, body, headers, config.timeout_seconds)
         except ProviderError:
