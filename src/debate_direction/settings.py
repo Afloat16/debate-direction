@@ -13,16 +13,35 @@ from urllib.parse import urlsplit
 from .config import ConfigError, SessionConfig, resolve_config
 
 
+class _DefaultProfileHomeUnavailable(ConfigError):
+    """Only automatic profile discovery may ignore an unavailable home."""
+
+
+def expand_config_path(path: Path) -> Path:
+    """Expand a selected profile path without leaking home-resolution errors."""
+    try:
+        return path.expanduser()
+    except RuntimeError:
+        raise ConfigError(
+            "could not expand the configuration path; set DEBATE_CONFIG or use --config with an absolute path"
+        ) from None
+
+
 def default_config_path() -> Path:
     explicit = os.environ.get("DEBATE_CONFIG")
     if explicit:
-        return Path(explicit).expanduser()
-    if sys.platform == "win32":
-        root = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
-    elif sys.platform == "darwin":
-        root = Path.home() / "Library" / "Application Support"
-    else:
-        root = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+        return expand_config_path(Path(explicit))
+    try:
+        if sys.platform == "win32":
+            root = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
+        elif sys.platform == "darwin":
+            root = Path.home() / "Library" / "Application Support"
+        else:
+            root = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    except RuntimeError:
+        raise _DefaultProfileHomeUnavailable(
+            "could not determine the default configuration directory; set DEBATE_CONFIG or use --config with an absolute path"
+        ) from None
     return root / "debate-direction" / "config.json"
 
 
@@ -104,9 +123,21 @@ def resolve_runtime(args, *, limits: dict | None = None) -> tuple[SessionConfig,
                  "base_url": args.base_url, "api_key_env": args.api_key_env}
     explicit_pair = args.model is not None or args.reasoning_effort is not None or args.session_config is not None
     env_pair = any(env.get(k) for k in ("DEBATE_MODEL", "DEBATE_REASONING_EFFORT", "DEBATE_PROVIDER"))
-    path = args.config.expanduser() if args.config else default_config_path()
-    use_profile = args.config is not None or (not explicit_pair and args.provider is None and not env_pair and path.exists())
-    if use_profile:
+    path = None
+    selected_profile = args.config is not None
+    if selected_profile:
+        path = expand_config_path(args.config)
+    elif not explicit_pair and args.provider is None and not env_pair:
+        # Resolving the default location is unnecessary when runtime settings
+        # already select another source. A missing OS home only makes automatic
+        # discovery unavailable; explicitly configured path errors still matter.
+        selected_profile = bool(env.get("DEBATE_CONFIG"))
+        try:
+            path = default_config_path()
+        except _DefaultProfileHomeUnavailable:
+            if selected_profile:
+                raise
+    if path is not None and (selected_profile or path.exists()):
         profile = read_profile(path)
         for key, value in requested.items():
             if value is not None and value != profile.get(key):

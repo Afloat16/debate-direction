@@ -8,18 +8,20 @@ The v0.2 update adds one-command OS installers, safe host skill installation, no
 
 | Check | Observed result | Boundary |
 | --- | --- | --- |
-| Python 3.12 local regression suite | 164 collected: 162 passed, 2 PowerShell checks skipped; see CI for platform totals | Controlled transports and local fixtures, no live model calls |
+| Python 3.12 local regression suite | 176 collected: 174 passed, 2 PowerShell checks skipped; see CI for platform totals | Controlled transports and local fixtures, no live model calls |
 | Real uv installation from a local v0.2 wheel | Installed twice, version/demo passed, all three project skills installed, unchanged rerun verified, isolated CLI removed | Existing uv 0.12.19 and a preloaded managed Python 3.12.14 fixture; no fresh bootstrap download |
 | Shell installer boundary tests | 10 passed | Mock executables check options, quoting, explicit host selection and failures |
 | PowerShell parsing and help tests | Skipped locally because PowerShell is unavailable | Executed by the Windows CI job; local skips are not Windows acceptance |
-| Saved profiles and native skill writes | 36 focused regression tests passed | Preserves customizations, rejects malformed URLs and conflicting sources, excludes key values, keeps backups, reports partial installation scope |
+| Saved profiles and native skill writes | 47 focused regression tests passed | Preserves customizations, rejects malformed URLs and conflicting sources, excludes key values, keeps backups, reports partial installation scope |
 | Full engine through all six actual adapters | 8 integration tests passed with controlled provider envelopes, including lifecycle/cancellation cases | Verifies public/private history integration; makes no live provider calls |
 | Native skill structure and bundled copy | Structure valid; source and packaged skill match | File validity and discovery paths do not prove host runtime inheritance |
 | Documentation | English/Chinese command blocks match; local links resolve | Provider and host capability descriptions are based on current primary documentation |
 
-The GitHub Actions matrix runs Python 3.11 and 3.13 on Windows, macOS and Linux. Each job runs regression tests, the fixed demo, wheel construction, package installation and bundled-skill checks. The Python 3.11 jobs also run the real OS installer twice, exercise all host destinations in a temporary project, verify unchanged reruns, and uninstall the isolated CLI. Consult [the actual workflow runs](https://github.com/Afloat16/debate-direction/actions/workflows/ci.yml) for each commit's results.
+The GitHub Actions matrix runs Python 3.11 and 3.13 on Windows, macOS and Linux. Each job runs regression tests, the fixed demo, wheel construction, package installation and bundled-skill checks. The Python 3.11 jobs also run the real OS installer twice, exercise all host destinations in a temporary project, verify unchanged reruns, and uninstall the isolated CLI. The Windows Python 3.11 job also exercises the installer under Windows PowerShell 5.1. Consult [the actual workflow runs](https://github.com/Afloat16/debate-direction/actions/workflows/ci.yml) for each commit's results.
 
 Provider adaptation checks cover exact model/effort parameters, completed public JSON, refusal/truncation handling, reported model identity and usage, isolated private replay, generation invalidation after cancellation, and endpoint safety. Gemini usage tests include thinking tokens reported outside the completion count. Kimi tests preserve optional continuation fields exactly. These are mocked transport assertions, not proof that every account/model combination works online.
+
+The first Windows CI run identified a default-profile lookup that assumed a discoverable home directory even when no saved profile was needed. Lazy profile discovery and sanitized path errors address that failure; explicit settings retain their existing precedence. A separate redirected-output check found that Chinese input and emoji could fail under legacy Windows encodings. JSON stdout now uses lossless escapes while saved reports retain UTF-8. Both fixes have regression coverage.
 
 The release environment has no provider API credentials and no local Codex, Claude Code or Kimi Code executable. No live multi-provider debate or new cross-host native debate is claimed. The bootstrap download paths are documented and Windows archive checksums were compared with Astral's official release; installer smoke tests that reuse uv do not exercise fresh-machine bootstrap. Architecture routing and upstream distribution availability do not replace physical-machine coverage.
 

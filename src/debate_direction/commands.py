@@ -12,7 +12,7 @@ from pathlib import Path
 from . import __version__
 from .config import ConfigError, EFFORTS, SessionConfig
 from .providers import get_provider_preset, list_provider_presets, supported_efforts, supported_models, validate_provider_config
-from .settings import default_config_path, read_profile, validate_profile, write_profile
+from .settings import default_config_path, expand_config_path, read_profile, validate_profile, write_profile
 from .skill_install import HOSTS, install_skill, skill_root
 
 COMMANDS = ("setup", "providers", "doctor", "install-skill")
@@ -59,7 +59,7 @@ def setup(argv: list[str]) -> int:
     validate_provider_config(preset.name, SessionConfig(model=args.model, reasoning_effort=args.reasoning_effort, provider=preset.name))
     if not (profile.get("base_url") or preset.base_url):
         raise ConfigError("openai-compatible requires --base-url")
-    path = args.config.expanduser() if args.config else default_config_path()
+    path = expand_config_path(args.config) if args.config is not None else default_config_path()
     write_profile(path, profile, overwrite=args.overwrite)
     key_env = profile.get("api_key_env", preset.api_key_env)
     print(f"Saved configuration: {path}")
@@ -102,12 +102,19 @@ def doctor(argv: list[str]) -> int:
     parser.description = "Inspect local installation and configuration without contacting any model API."
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
-    path = args.config.expanduser() if args.config else default_config_path()
+    path = expand_config_path(args.config) if args.config is not None else default_config_path()
+    hosts = {}
+    for host in HOSTS:
+        info = {"executable": shutil.which(host), "skill_path": None, "skill_present": None}
+        try:
+            host_path = skill_root(host) / "debate-direction"
+            info.update({"skill_path": str(host_path), "skill_present": (host_path / "SKILL.md").is_file()})
+        except RuntimeError:
+            info["skill_error"] = "host home directory is unavailable; skill installation could not be checked"
+        hosts[host] = info
     result = {"version": __version__, "python": sys.version.split()[0], "executable": sys.executable,
               "config_path": str(path), "config_status": "not_configured", "network_checked": False,
-              "hosts": {host: {"executable": shutil.which(host), "skill_path": str(skill_root(host) / "debate-direction"),
-                               "skill_present": (skill_root(host) / "debate-direction" / "SKILL.md").is_file()}
-                        for host in HOSTS}}
+              "hosts": hosts}
     if path.exists() or args.config:
         profile = read_profile(path)
         preset = get_provider_preset(profile["provider"])
@@ -127,7 +134,8 @@ def doctor(argv: list[str]) -> int:
             print(f"Both agents: {result['provider']} / {result['model']} / {result['reasoning_effort']}")
             print(f"API key: {'set' if result['api_key_present'] else 'not set'} in {result['api_key_env']}")
         for host, info in result["hosts"].items():
-            print(f"{host}: command {'found' if info['executable'] else 'not found'}; skill {'present' if info['skill_present'] else 'not installed'}")
+            skill_status = "unavailable" if info["skill_present"] is None else "present" if info["skill_present"] else "not installed"
+            print(f"{host}: command {'found' if info['executable'] else 'not found'}; skill {skill_status}")
         print("Local checks only. Host agent inheritance and live API access have not been tested by this command.")
     return 0
 

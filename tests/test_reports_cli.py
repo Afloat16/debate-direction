@@ -114,6 +114,30 @@ class CliTests(unittest.TestCase):
             self.assertIn('--model', error)
             network.assert_not_called()
 
+    def test_json_stdout_preserves_unicode_through_legacy_windows_encodings(self):
+        question = 'Review \u4e2d\u6587 requirements and a launch \U0001f680'
+        for encoding in ('cp1252', 'cp936'):
+            with self.subTest(encoding=encoding), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                question_file = root / 'question.txt'
+                question_file.write_text(question, encoding='utf-8')
+                buffer = io.BytesIO()
+                stdout = io.TextIOWrapper(buffer, encoding=encoding, write_through=True)
+                stderr = io.StringIO()
+                with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-only-key'}, clear=True), \
+                     patch('debate_direction.cli.create_provider', return_value=DemoProvider()), \
+                     patch('debate_direction.provider._http_transport') as network, \
+                     contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    code = main(['--question-file', str(question_file), '--provider', 'openai',
+                                 '--model', 'test-model', '--reasoning-effort', 'high',
+                                 '--out', str(root / 'reports'), '--json', '--quiet'])
+                self.assertEqual(code, 0, stderr.getvalue())
+                self.assertEqual(json.loads(buffer.getvalue().decode('ascii'))['question'], question)
+                saved = json.loads((root / 'reports' / 'report.json').read_text(encoding='utf-8'))
+                self.assertEqual(saved['question'], question)
+                network.assert_not_called()
+                stdout.close()
+
 
 if __name__ == '__main__':
     unittest.main()

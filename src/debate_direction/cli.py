@@ -151,7 +151,10 @@ def main(argv: list[str] | None = None) -> int:
             report["actual_model_calls"] = 0
         write_reports(report, directory, overwrite=args.overwrite)
         if args.json:
-            print(json.dumps(report, ensure_ascii=False, indent=2))
+            # ASCII JSON remains lossless after parsing and also works through
+            # redirected Windows streams with a legacy output encoding. The
+            # saved report files retain their human-readable UTF-8 text.
+            print(json.dumps(report, ensure_ascii=True, indent=2))
         else:
             print(DECISIONS.get(report.get("decision"), "No conclusion yet"))
             print(f"Stop reason: {report.get('stop_reason')}; completed {report.get('rounds_completed', 0)} rounds.")

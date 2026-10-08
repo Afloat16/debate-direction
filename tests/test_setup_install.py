@@ -225,6 +225,107 @@ class RuntimeResolutionTests(LocalTestCase):
         self.assertNotIn(SECRET_SENTINEL, json.dumps(profile))
 
 
+class MissingHomeResolutionTests(LocalTestCase):
+    def setUp(self):
+        super().setUp()
+        self.home = mock.patch.object(Path, "home", side_effect=RuntimeError(SECRET_SENTINEL))
+        self.home_mock = self.home.start()
+        self.addCleanup(self.home.stop)
+
+    def test_complete_explicit_settings_skip_default_location_even_with_debate_config(self):
+        for default_path in (None, "~/profile-that-must-not-be-loaded.json"):
+            with self.subTest(default_path=default_path):
+                env = {} if default_path is None else {"DEBATE_CONFIG": default_path}
+                with mock.patch.dict(os.environ, env, clear=True), mock.patch.object(settings, "default_config_path", side_effect=AssertionError("runtime settings must bypass profile discovery")):
+                    config, profile = settings.resolve_runtime(arguments(provider="openai", model="explicit-model", reasoning_effort="high"))
+                self.assertEqual((config.model, config.reasoning_effort, config.config_source), ("explicit-model", "high", "explicit"))
+                self.assertEqual(profile["provider"], "openai")
+        self.home_mock.assert_not_called()
+
+    def test_complete_environment_settings_skip_default_location_and_saved_path(self):
+        os.environ.update({"DEBATE_MODEL": "environment-model", "DEBATE_REASONING_EFFORT": "low", "DEBATE_PROVIDER": "openai", "DEBATE_CONFIG": "~/unused-profile.json"})
+        with mock.patch.object(settings, "default_config_path", side_effect=AssertionError("environment settings must bypass profile discovery")):
+            config, profile = settings.resolve_runtime(arguments())
+        self.assertEqual((config.model, config.reasoning_effort, config.config_source), ("environment-model", "low", "environment"))
+        self.assertEqual(profile["provider"], "openai")
+        self.home_mock.assert_not_called()
+
+    def test_session_metadata_does_not_require_an_automatic_home(self):
+        session = self.directory / "session.json"
+        session.write_text(json.dumps({"model": "session-model", "reasoning_effort": "high"}), encoding="utf-8")
+        with mock.patch.object(settings, "default_config_path", side_effect=AssertionError("session metadata must bypass profile discovery")):
+            config, _ = settings.resolve_runtime(arguments(session_config=session))
+        self.assertEqual(config.config_source, "session_config")
+        self.assertEqual(config.model, "session-model")
+        self.home_mock.assert_not_called()
+
+    def test_optional_missing_home_keeps_the_normal_missing_settings_error(self):
+        with self.assertRaises(ConfigError) as caught:
+            settings.resolve_runtime(arguments())
+        message = str(caught.exception)
+        self.assertIn("--model", message)
+        self.assertIn("--reasoning-effort", message)
+        self.assertNotIn(SECRET_SENTINEL, message)
+        self.home_mock.assert_called_once()
+        with self.assertRaisesRegex(ConfigError, "together"):
+            settings.resolve_runtime(arguments(model="incomplete-model"))
+
+    def test_selected_profile_read_errors_are_not_discarded_when_home_is_missing(self):
+        missing = self.directory / "missing.json"
+        malformed = self.directory / "malformed.json"
+        malformed.write_text("{invalid-json", encoding="utf-8")
+        for path in (missing, malformed):
+            for source in ("argument", "environment"):
+                with self.subTest(path=path.name, source=source):
+                    env = {"DEBATE_CONFIG": str(path)} if source == "environment" else {}
+                    args = arguments() if source == "environment" else arguments(config=path, model="explicit-model", reasoning_effort="high")
+                    with mock.patch.dict(os.environ, env, clear=True):
+                        with self.assertRaisesRegex(ConfigError, "could not read a valid profile") as caught:
+                            settings.resolve_runtime(args)
+                    self.assertNotIn(SECRET_SENTINEL, str(caught.exception))
+        self.home_mock.assert_not_called()
+
+    def test_selected_profile_expansion_errors_are_sanitized_and_not_suppressed(self):
+        for source in ("argument", "environment"):
+            with self.subTest(source=source):
+                env = {"DEBATE_CONFIG": "~/selected.json"} if source == "environment" else {}
+                args = arguments() if source == "environment" else arguments(config=Path("~/selected.json"))
+                with mock.patch.dict(os.environ, env, clear=True), mock.patch.object(Path, "expanduser", side_effect=RuntimeError(SECRET_SENTINEL)):
+                    with self.assertRaises(ConfigError) as caught:
+                        settings.resolve_runtime(args)
+                message = str(caught.exception)
+                self.assertIn("DEBATE_CONFIG", message)
+                self.assertIn("--config", message)
+                self.assertNotIn(SECRET_SENTINEL, message)
+
+    def test_valid_absolute_selected_profile_works_and_explicit_flag_wins(self):
+        path = self.directory / "profile.json"
+        settings.write_profile(path, PROFILE)
+        os.environ["DEBATE_CONFIG"] = str(path)
+        config, profile = settings.resolve_runtime(arguments())
+        self.assertEqual(config.config_source, "saved_profile")
+        self.assertEqual(profile, PROFILE)
+        os.environ["DEBATE_CONFIG"] = "~/unselected-invalid-profile.json"
+        config, profile = settings.resolve_runtime(arguments(config=path))
+        self.assertEqual(config.config_source, "saved_profile")
+        self.assertEqual(profile, PROFILE)
+        self.home_mock.assert_not_called()
+
+    def test_required_default_destination_has_guidance_and_explicit_roots_work(self):
+        for platform_name in ("win32", "darwin", "linux"):
+            with self.subTest(platform=platform_name), mock.patch.object(settings.sys, "platform", platform_name):
+                with self.assertRaises(ConfigError) as caught:
+                    settings.default_config_path()
+                self.assertIn("DEBATE_CONFIG", str(caught.exception))
+                self.assertIn("--config", str(caught.exception))
+                self.assertNotIn(SECRET_SENTINEL, str(caught.exception))
+        for platform_name, root_var in (("win32", "LOCALAPPDATA"), ("linux", "XDG_CONFIG_HOME")):
+            with self.subTest(root_var=root_var):
+                root = self.directory / root_var
+                with mock.patch.dict(os.environ, {root_var: str(root)}, clear=True), mock.patch.object(settings.sys, "platform", platform_name):
+                    self.assertEqual(settings.default_config_path(), root / "debate-direction" / "config.json")
+
+
 class SkillInstallationTests(LocalTestCase):
     def setUp(self):
         super().setUp()
@@ -497,6 +598,62 @@ class SetupCommandTests(LocalTestCase):
         self.assertEqual({item["host"] for item in reports}, {"codex", "claude", "kimi"})
         self.assertEqual({item["status"] for item in reports}, {"would_install"})
         self.assertEqual(list(self.directory.iterdir()), [])
+
+
+    def test_setup_and_doctor_report_missing_default_home_as_configuration_error(self):
+        setup_args = self.setup_args()
+        config_index = setup_args.index("--config")
+        del setup_args[config_index:config_index + 2]
+        for command, argv in ((self.commands.setup, setup_args), (self.commands.doctor, [])):
+            with self.subTest(command=command.__name__), mock.patch.object(Path, "home", side_effect=RuntimeError(SECRET_SENTINEL)):
+                with self.assertRaises(ConfigError) as caught:
+                    command(argv)
+                self.assertIn("DEBATE_CONFIG", str(caught.exception))
+                self.assertIn("--config", str(caught.exception))
+                self.assertNotIn(SECRET_SENTINEL, str(caught.exception))
+        self.assertFalse(self.path.exists())
+
+    def test_commands_safely_expand_explicit_config_paths(self):
+        for command, argv in (
+            (self.commands.setup, self.setup_args(config="~/selected.json")),
+            (self.commands.doctor, ["--config", "~/selected.json"]),
+        ):
+            with self.subTest(command=command.__name__), mock.patch.object(Path, "expanduser", side_effect=RuntimeError(SECRET_SENTINEL)):
+                with self.assertRaises(ConfigError) as caught:
+                    command(argv)
+                self.assertIn("--config", str(caught.exception))
+                self.assertIn("DEBATE_CONFIG", str(caught.exception))
+                self.assertNotIn(SECRET_SENTINEL, str(caught.exception))
+        self.assertFalse(self.path.exists())
+
+    def test_absolute_profile_allows_setup_and_doctor_with_unavailable_host_homes(self):
+        with mock.patch.object(Path, "home", side_effect=RuntimeError(SECRET_SENTINEL)):
+            self.assertEqual(self.commands.setup(self.setup_args()), 0)
+            self.stdout.seek(0)
+            self.stdout.truncate(0)
+            self.assertEqual(self.commands.doctor(["--config", str(self.path), "--json"]), 0)
+            report = json.loads(self.stdout.getvalue())
+            self.assertEqual(report["config_status"], "configured")
+            self.assertFalse(report["network_checked"])
+            for host in report["hosts"].values():
+                self.assertIsNone(host["skill_path"])
+                self.assertIsNone(host["skill_present"])
+                self.assertIn("unavailable", host["skill_error"])
+            self.assertNotIn(SECRET_SENTINEL, self.stdout.getvalue())
+            self.stdout.seek(0)
+            self.stdout.truncate(0)
+            self.commands.doctor(["--config", str(self.path)])
+            self.assertEqual(self.stdout.getvalue().count("skill unavailable"), 3)
+            self.assertNotIn("skill not installed", self.stdout.getvalue())
+            os.environ["KIMI_CODE_HOME"] = str(self.directory / "known kimi home")
+            self.stdout.seek(0)
+            self.stdout.truncate(0)
+            self.commands.doctor(["--config", str(self.path), "--json"])
+            report = json.loads(self.stdout.getvalue())
+            self.assertFalse(report["hosts"]["kimi"]["skill_present"])
+            self.assertIsNotNone(report["hosts"]["kimi"]["skill_path"])
+            self.assertIsNone(report["hosts"]["codex"]["skill_present"])
+            self.assertIsNone(report["hosts"]["claude"]["skill_present"])
 
     def test_provider_listing_is_metadata_only(self):
         os.environ["OPENAI_API_KEY"] = SECRET_SENTINEL

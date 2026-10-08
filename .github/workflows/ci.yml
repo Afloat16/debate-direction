@@ -85,6 +85,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & .\install.ps1 -Source $env:GITHUB_WORKSPACE -PythonVersion 3.11
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install from local source with Windows PowerShell 5.1
+        if: matrix.python == '3.11' && runner.os == 'Windows'
+        shell: powershell
+        run: |
+          if ($PSVersionTable.PSVersion.Major -ne 5 -or $PSVersionTable.PSVersion.Minor -ne 1) {
+            throw 'This check requires Windows PowerShell 5.1.'
+          }
+          & .\install.ps1 -Source $env:GITHUB_WORKSPACE -PythonVersion 3.11
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $env:UV_TOOL_BIN_DIR 'debate-direction.exe') --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify the installed CLI, all host skills, idempotency, and removal
         if: matrix.python == '3.11'
         shell: python {0}

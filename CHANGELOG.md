@@ -8,7 +8,8 @@
 - Add OpenAI, Anthropic, DeepSeek, Kimi, Gemini and generic OpenAI-compatible provider presets, with provider-specific model and reasoning controls.
 - Add non-secret setup profiles, exact provider/model/effort validation, provider inspection and local diagnostics.
 - Keep required private continuation fields separate from public reports and clear adapter state after a run; retain public work if cleanup fails.
-- Expand offline CI to Windows, macOS and Linux with package and installer exercises.
+- Expand offline CI to Windows, macOS and Linux with package and installer exercises, including Windows PowerShell 5.1.
+- Handle unavailable home directories without a traceback, and preserve Unicode JSON output through legacy Windows encodings.
 - Update the English documentation and complete Chinese README with matching setup commands.
 
 The existing positional-question command and OpenAI Responses path remain available. Reports add the selected provider and cleanup status. Explicit settings bypass automatic profile loading; no current chat model is guessed. Native host discovery does not establish native agent runtime support, and no live API compatibility claim is inferred from mocked tests.
