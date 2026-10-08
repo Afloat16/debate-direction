@@ -1,1 +1,1 @@
-我们有一个客服工单后台，客服经常说找工单太慢。团队只有两周开发时间，现有权限体系不能改变。请提出可试点的改进方向，并指出先要确认哪些信息。
+We have a support-ticket dashboard, and staff frequently say that finding tickets takes too long. The team has only two weeks of development time, and the existing permission system must remain unchanged. Propose improvements we could pilot and identify the information we need to confirm first.

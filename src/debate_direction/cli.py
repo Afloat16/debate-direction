@@ -20,7 +20,7 @@ from .reports import DECISIONS, render_html, render_markdown
 def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="debate-direction",
-        description="Two real agent roles debate a direction; consensus is not factual verification. 双 agent 方向审查。",
+        description="Two real agent roles debate a direction; consensus is not factual verification.",
         epilog="Native skill inherits the host session when supported. CLI requires an explicit model/effort pair. Reports contain your question and context; review them before sharing.",
     )
     parser.add_argument("question", nargs="?", help="the decision or ambiguous request to examine")
@@ -123,8 +123,8 @@ def main(argv: list[str] | None = None) -> int:
         directory = args.out or Path("runs") / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ-") + uuid.uuid4().hex[:8])
         _prepare_output(directory, args.overwrite)
         if not args.quiet:
-            print("离线演示：固定案例，无真实模型调用。" if args.demo else
-                  f"启动双 agent：{config.model} / {config.reasoning_effort}，最多 {config.max_rounds} 轮。", file=sys.stderr)
+            print("Offline demo: a fixed example with no real model calls." if args.demo else
+                  f"Starting two agents: {config.model} / {config.reasoning_effort}, up to {config.max_rounds} rounds.", file=sys.stderr)
         def on_event(event):
             if not args.quiet and isinstance(event, dict):
                 name = event.get("type", event.get("event", "event"))
@@ -140,11 +140,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps(report, ensure_ascii=False, indent=2))
         else:
-            print(DECISIONS.get(report.get("decision"), "尚未形成结论"))
-            print(f"停止原因：{report.get('stop_reason')}；完成 {report.get('rounds_completed', 0)} 轮。")
-            print("验证状态：尚未实际核验。")
-            print(f"报告：{directory.resolve() / 'report.html'}")
-            print(f"数据：{directory.resolve() / 'report.json'}")
+            print(DECISIONS.get(report.get("decision"), "No conclusion yet"))
+            print(f"Stop reason: {report.get('stop_reason')}; completed {report.get('rounds_completed', 0)} rounds.")
+            print("Verification status: not checked in practice.")
+            print(f"Report: {directory.resolve() / 'report.html'}")
+            print(f"Data: {directory.resolve() / 'report.json'}")
         if report.get("stop_reason") == "cancelled":
             return 130
         if report.get("status") == "partial":
@@ -156,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"debate-direction: {exc}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:
-        print("已取消。尚未生成可完整导出的结果。", file=sys.stderr)
+        print("Cancelled. No complete exportable result is available yet.", file=sys.stderr)
         return 130
 
 

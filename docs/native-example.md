@@ -1,60 +1,62 @@
-# 真实双 agent 运行示例
+# Debate Direction: native two-agent run example
 
-这是 2026-10-08 在具备原生子 agent 能力的宿主中执行的一次技能演练。**场景为自拟测试题，两个角色的回复由真实 agent 生成。** 它不是固定 CLI 演示，也不是现实工作室的调查结果。
+This skill exercise ran on 2026-10-08 in a host with native subagent support. **The scenario was an invented test question; two real agents generated the role responses.** The exercise was conducted in Chinese. The input and run summary on this page are English translations of that original exercise, not a new run. This was neither the fixed CLI demonstration nor an investigation of an actual studio.
 
-## 输入
+## Input
 
-> 我们是六人的设计工作室，共用摄影器材。现在靠群消息预约，漏看消息会撞期。希望一周内改善，没有专职管理员，也不想开发复杂系统。请通过两个 agent 的正反论证给出方向，最多两轮；本次只讨论，不实施外部变更。
+The original test input was in Chinese. Its English translation is:
 
-## 结果
+> We are a six-person design studio sharing photography equipment. We currently book it through group messages, and missed messages lead to scheduling conflicts. We want an improvement within one week, have no dedicated administrator, and do not want to build a complex system. Use two agents to propose and challenge a direction, with at most two rounds. This run is for discussion only; do not make external changes.
 
-优先尝试**唯一共享预约台账、使用者自行维护、取用前复核以及明确的冲突处理规则**。先确认全员访问、器材或套件依赖、现有预约切换以及成员能否承担人工复核成本。现有预约工具和实体预约板作为条件不同的备选。
+## Result
 
-| 字段 | 实际结果 |
+The recommended direction was to try **one shared booking ledger, maintained by its users, with a check before taking equipment and explicit conflict-resolution rules**. Adoption remained conditional on confirming access for every member, dependencies between individual items and kits, migration of existing bookings, and members' ability to sustain manual checks. Existing booking tools and a physical booking board remained alternatives under different conditions.
+
+| Field | Observed result |
 | --- | --- |
 | `status` | `completed` |
 | `decision` | `ready_to_validate` |
 | `stop_reason` | `converged` |
 | `verification_status` | `not_checked` |
-| 有效评审轮数 | 2 |
-| 最后已审方案 | V2 |
-| 正式问题台账 | 空；没有凭空生成问题 ID |
-| 模型配置来源 | `documented_inheritance`；两个子 agent 创建时均省略模型和强度覆盖 |
+| Valid review rounds | 2 |
+| Last reviewed proposal | V2 |
+| Formal issue ledger | Empty; no issue IDs were fabricated |
+| Model configuration source | `documented_inheritance`; neither subagent creation request supplied a model or effort override |
 
-`ready_to_validate` 表示可以进入列明的验证步骤。方案仍依赖尚未确认的采用条件；空问题台账不表示所有外部事实已经成立。
+`ready_to_validate` means the direction can proceed to the listed validation steps. It still depends on unconfirmed adoption conditions. An empty issue ledger does not establish the external facts on which the proposal relies.
 
-## 实际核心过程
+## What actually happened
 
-先创建正方和反方，双方仅确认就绪；两者都已存在后才发送盲开场任务。后续一直使用原有两个角色，没有第三位辩论裁判。
+The proposer and critic were created first and only acknowledged readiness. Blind opening tasks were sent after both existed. The same two roles continued throughout, without a third debate judge.
 
-| 阶段 | 正方主张或动作 | 反方检查及处置 |
+| Phase | Proposer's position or action | Critic's checks and disposition |
 | --- | --- | --- |
-| 盲开场 | 提出共享台账、现有日历或预约工具、实体预约板三个备选；有条件推荐共享台账 | 独立检查预约依据与并发、资源和归还边界、隐性管理员、全员访问维护及一周样本量 |
-| 第 1 轮：V1 | 明确唯一记录、预约与取用前检查、使用者维护、冲突规则和暂停条件 | 确认所提风险已有相应边界、验证要求或暂停分支；接受 V1 的方向，未新增正式问题 |
-| 第 2 轮：V2 | 提交完整 V2，明确“无实质变化”，复核边界场景、验收与最低成本验证 | 对 V2 重新检查后接受；未把旧版认可自动套用到新版，也未要求无意义修改 |
+| Blind openings | Offered three alternatives: a shared ledger, an existing calendar or booking tool, and a physical booking board; conditionally recommended the shared ledger | Independently examined booking authority and concurrency, resource and return boundaries, an implicit administrator burden, access and maintenance by all members, and the sample available within one week |
+| Round 1: review of opening proposal V1 | V1 specified one authoritative record, checks before booking and taking equipment, user maintenance, conflict rules, and pause conditions | Found corresponding boundaries, validation requirements, or pause branches for the identified risks; accepted the V1 direction and raised no formal issues |
+| Round 2: V2 | Submitted the complete V2 with no substantive changes, checking boundary cases, acceptance criteria, and the least costly validation steps | Reviewed V2 again and accepted it; did not transfer the previous version's acceptance automatically or require a meaningless change |
 
-风险扫描中的关注点没有自动成为正式缺陷。反方必须在看到具体方案后判断缺陷是否真实存在。这次案例展示的是**审查后的接受**，并不包含“反方找出缺陷后正方大改”的情节。
+Concerns from the blind risk scan did not automatically become formal defects. The critic had to inspect the concrete proposal before deciding whether an actual defect existed. This case demonstrates **acceptance after review**. It does not contain a sequence in which the critic found defects and the proposer substantially redesigned the plan.
 
-两份初始开场将可在试点前确认的事项误标成了阻塞澄清；协调者各请求了一次语义修复，保留问题但改为不阻塞当前讨论。修复未计作评审轮，也未创建替代角色。后续协议补充了这一判断标准。
+Both initial openings incorrectly marked matters that could be confirmed before the pilot as blocking clarification. The coordinator asked each existing role for one semantic correction, retaining the questions while removing their blocking effect on the current discussion. These corrections were not review rounds and did not create replacement roles. The protocol was subsequently clarified to make this distinction explicit.
 
-## 保留的条件与验证步骤
+## Retained conditions and validation steps
 
-以下是双方讨论过的**未来验证计划，均未执行**：
+The following are **future validation plans discussed by the two roles; none was executed**:
 
-| 需要确认的事项 | 拟议通过条件 | 失败时的方向 |
+| Matter to confirm | Proposed passing condition | Direction if it fails |
 | --- | --- | --- |
-| 六人都能访问和维护同一记录 | 每位成员能独立查询并填写自己的示例预约 | 换用可共同访问的载体，或暂停 |
-| 同时登记同一器材 | 完整记录保留两条请求，双方在取用前识别冲突并按规则处理 | 检查载体同步与流程；不能以反复提醒代替保障 |
-| 套件与单件依赖 | 对关联资源能得到一致的占用判断 | 调整资源表示；无法准确表达时换方向 |
-| 改期、取消和延迟归还 | 新时段重新检查，旧记录无歧义，未归还不被认定为可取用 | 修正规则并复核对应风险 |
-| 持续维护负担 | 由使用者完成维护，无固定成员持续补录和裁决 | 当前方案不满足“无专职管理员”的约束 |
+| All six members can access and maintain the same record | Each member independently finds and enters their own example booking | Switch to a medium everyone can access, or pause |
+| Simultaneous requests for the same equipment | The complete record retains both requests, and the users identify and resolve the conflict under the agreed rules before taking the equipment | Check synchronization and the process; repeated reminders cannot substitute for a safeguard |
+| Dependencies between kits and individual items | Linked resources produce consistent availability decisions | Adjust the resource representation; choose another direction if it cannot represent dependencies accurately |
+| Rescheduling, cancellation, and late returns | Recheck the new time slot, leave an unambiguous old record, and do not treat unreturned equipment as ready to take | Revise the rules and review the corresponding risks again |
+| Ongoing maintenance burden | Users maintain their own bookings without one person continually entering missing records or arbitrating conflicts | The current direction does not meet the constraint of having no dedicated administrator |
 
-普通表格没有被假定为具备原子预约或自动防撞期能力。若业务无法承受人工复核遗漏或暂缓取用，需先核实已有预约工具是否具备必要能力。试点预约量太少或没有发生竞争时，只能说明实际观察到的可操作性，不能证明方案有效。
+An ordinary spreadsheet was not assumed to provide atomic bookings or automatic conflict prevention. If the workflow cannot tolerate missed manual checks or delayed equipment use, the required capabilities of existing booking tools must be checked first. Too few pilot bookings, or a pilot without competing requests, can establish only the operability actually observed, not the proposal's effectiveness.
 
-**时间安排仍未核实。** 输入要求“一周内改善”，方案建议准备、演练、切换和一周试点，却没有验证这些步骤能否全部落在从现在起的七天内。两轮接受没有消除这一时间安排的不确定性；采用前仍需确定实际可执行的时间表。
+**The schedule remains unverified.** The input requested an improvement within one week. The proposal included preparation, rehearsal, migration, and a one-week pilot, without establishing that all those steps fit within seven days from the start. Acceptance in two rounds did not remove this scheduling uncertainty; adoption still requires a feasible actual timetable.
 
-## 这一案例能说明什么
+## What this case establishes
 
-原生技能确实启动了两个真实角色、完成了两轮指定版本评审，并保留了未知项和验证计划。它也暴露出自然语言 agent 可能误用结构字段，需要协调者检查和有限修复。
+The native skill did start two real roles, complete two reviews of specific proposal versions, and retain unknowns and validation plans. It also exposed that natural-language agents can misuse structured fields, requiring coordinator checks and limited correction.
 
-这一次演练不能证明两个 agent 始终优于单个 agent，也不能证明共享台账已经解决撞期问题。双方按宿主文档继承同一模型及共同任务上下文，仍可能存在相同盲区。
+This single exercise does not establish that two agents always outperform one or that the shared ledger has solved booking conflicts. Both roles inherited the same model and shared task context under the host's documented rules, so they can still share blind spots.

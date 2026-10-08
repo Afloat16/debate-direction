@@ -502,7 +502,7 @@ class DebateEngine:
             return
         if not self._question.strip():
             self._stop_reason = "needs_clarification"
-            self._clarification_questions = ["请提供要讨论的问题，以及需要决定或修改的对象。"]
+            self._clarification_questions = ["Please provide the question to discuss and the specific decision or item you want to change."]
             return
         if len(self._question) + len(self._context) > self.config.max_input_chars:
             self._stop_reason = "input_limit"
@@ -613,12 +613,12 @@ class DebateEngine:
             conditions.append(f"{issue['id']} [{issue['severity']}/{issue['status']}]: {issue['title']}")
             next_steps.append(issue["resolution_criterion"])
         if self._proposal is not None and not self._proposal["reviewed"]:
-            conditions.append("最新方案尚未经反方审查，不能视为双方确认的结论。")
+            conditions.append("The latest proposal has not been reviewed by Con and cannot be treated as a conclusion accepted by both agents.")
         questions = _unique_strings(self._clarification_questions)[:3]
         if decision == "needs_clarification":
             next_steps = questions + next_steps
         if not next_steps:
-            next_steps = ["根据停止原因补充信息或调整运行限制，然后继续审查；当前结果尚未验证。"]
+            next_steps = ["Use the stop reason to supply missing information or adjust the run limits, then continue the review. The current result has not been validated."]
         actual_elapsed = time.monotonic() - self._started
         elapsed = round(actual_elapsed, 3)
         self._usage.update({

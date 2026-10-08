@@ -1,102 +1,102 @@
-# 方向辩论 · 决策报告
+# Debate Direction · Decision Report
 
-**结论：方向已收敛，进入验证**
+**Decision: Direction agreed; ready for validation**
 
-> 固定离线演示：全部内容来自脚本示例，没有调用模型，也没有分析你自己的问题。
+> Fixed offline demo: all content comes from a scripted example. No models were called, and your own question was not analyzed.
 
-## 问题与当前建议
+## Question and current recommendation
 
-修改客服工单后台，让客服更快找到需要处理的工单。团队只有两周时间，请找出可试点的方向。
+Improve the support ticket dashboard so support staff can find tickets that need attention faster. The team has only two weeks; identify a direction suitable for a pilot.
 
-先观察典型任务，再试点组合筛选和个人视图；保留旧入口并提供回退。
+Observe representative tasks first, then pilot combined filters and personal views. Preserve the existing entry point and provide a rollback option.
 
-**版本状态：** 展示已完成审查的方案 v2。
+**Version status:** Showing reviewed proposal v2.
 
-**验证状态：尚未实际核验。** 本报告记录论证与修订；共识不等于事实正确或测试通过。
+**Verification status: Not independently verified.** This report records arguments and revisions; agreement does not establish factual correctness or passing tests.
 
-**停止原因：** 双方接受当前方向。
+**Stop reason:** Both agents accept the current direction.
 
-## 核心交锋
+## Core exchanges
 
-**反方独立开场：** 先独立检查瓶颈证据、两周范围、权限与可回退性。
+**Con's independent opening:** Independently assess the bottleneck evidence, two-week scope, permissions and reversibility.
 
-### 第 1 轮 · 方案 v1
+### Round 1 · Proposal v1
 
-- **正方：** 优先重做搜索与智能推荐，同时列出小范围筛选试点备选。
-- **反方：** 整体重做缺少瓶颈证据，且权限约束没有落实到具体设计。
-- **本轮判断：** 要求继续修订
-- **新增异议：** I-001、I-002
+- **Pro:** Prioritize rebuilding search and adding smart recommendations, with a small filtering pilot as an alternative.
+- **Con:** The full rebuild lacks evidence of the bottleneck, and the design does not yet specify how permission constraints will be enforced.
+- **Round assessment:** Further revision required
+- **New objections:** I-001, I-002
 
-### 第 2 轮 · 方案 v2
+### Round 2 · Proposal v2
 
-- **正方：** 撤回整体重做，改为可回退的小范围试点，并把权限检查列入上线条件。
-- **反方：** 接受小范围试点方向；瓶颈改善与性能仍须实测。
-- **本轮判断：** 接受当前方向
-- **回应 I-001：** 接受范围和证据不足的异议，撤回整体重做。 改选 P2，先测量再试点。
-- **回应 I-002：** 个人视图只保存筛选配置，仍由服务端按现有权限查询。 增加权限测试与失败回退条件。
+- **Pro:** Withdraw the full rebuild in favor of a small, reversible pilot, with permission checks as a release condition.
+- **Con:** Accept the small pilot direction; its effect on the bottleneck and performance still require measurement.
+- **Round assessment:** Accept the current direction
+- **Response to I-001:** Accept the concerns about scope and insufficient evidence, and withdraw the full rebuild. Switch to P2: measure first, then run the pilot.
+- **Response to I-002:** Personal views save only filter settings; server-side queries still enforce existing permissions. Add permission tests and rollback conditions for failures.
 
-## 当前方案
+## Current proposal
 
-### 实施步骤
+### Implementation steps
 
-- 观察典型工单查找任务并记录基线。
-- 确认现有接口和权限约束。
-- 做组合筛选、可切换排序与个人视图的小范围试点。
-- 按事先约定的成功标准决定保留、调整或回退。
+- Observe representative ticket lookup tasks and record a baseline.
+- Confirm existing API capabilities and permission constraints.
+- Run a small pilot with combined filters, adjustable sorting and personal views.
+- Use the agreed success criteria to decide whether to keep, adjust or roll back the changes.
 
-### 验收与后续验证
+### Acceptance checks and further validation
 
-- 测量修改前后相同任务的完成时间及误操作。
-- 检查角色权限、越权访问与保存视图的数据隔离。
-- 在真实量级数据上检查查询响应时间。
+- Measure completion times and errors for the same tasks before and after the changes.
+- Check role permissions, unauthorized access and data isolation in saved views.
+- Check query response times with a realistic volume of data.
 
-### 前提和成立条件
+### Assumptions and conditions
 
-- 团队可以邀请代表性客服参与短期试用。
-- 现有接口能力尚需查看。
-- 试点功能使用现有服务端权限校验。
-- 若接口不支持所需筛选，应先调整试点范围。
-- 接口、权限与真实性能检查通过后才开展试点。
+- The team can invite representative support staff to a short trial.
+- The capabilities of the existing APIs still need to be checked.
+- Pilot features must use the existing server-side permission checks.
+- If the APIs do not support the required filters, adjust the pilot scope first.
+- Begin the pilot only after the API, permission and realistic performance checks pass.
 
-## 异议记录
+## Objection log
 
-### I-001 · 重做范围缺少依据
+### I-001 · The rebuild scope lacks supporting evidence
 
-- **级别 / 状态：** high / resolved
-- **问题：** 没有任务数据支持重做搜索，难以证明两周内值得投入。
-- **解除条件：** 缩小改动范围，并先测量基线。
-- **最新处理理由：** 最新方案已撤回整体重做，改为先测量再试点。
-- **第 1 轮 → open：** 没有任务数据支持重做搜索，难以证明两周内值得投入。
-- **第 2 轮 → resolved：** 最新方案已撤回整体重做，改为先测量再试点。
+- **Severity / status:** high / resolved
+- **Issue:** No task data supports rebuilding search, so the investment is difficult to justify within two weeks.
+- **Resolution criterion:** Reduce the change scope and measure a baseline first.
+- **Latest decision rationale:** The latest proposal withdraws the full rebuild and instead measures a baseline before the pilot.
+- **Round 1 → open:** No task data supports rebuilding search, so the investment is difficult to justify within two weeks.
+- **Round 2 → resolved:** The latest proposal withdraws the full rebuild and instead measures a baseline before the pilot.
 
-### I-002 · 个人视图权限边界不清
+### I-002 · Permission boundaries for personal views are unclear
 
-- **级别 / 状态：** high / resolved
-- **问题：** 保存视图不能跳过服务端工单权限。
-- **解除条件：** 将现有权限校验和隔离测试写入设计与上线条件。
-- **最新处理理由：** 最新设计明确复用服务端权限，并列出隔离测试及回退条件。
-- **第 1 轮 → open：** 保存视图不能跳过服务端工单权限。
-- **第 2 轮 → resolved：** 最新设计明确复用服务端权限，并列出隔离测试及回退条件。
+- **Severity / status:** high / resolved
+- **Issue:** Saved views must not bypass server-side ticket permissions.
+- **Resolution criterion:** Include existing permission checks and isolation tests in the design and release conditions.
+- **Latest decision rationale:** The latest design explicitly reuses server-side permissions and includes isolation tests and rollback conditions.
+- **Round 1 → open:** Saved views must not bypass server-side ticket permissions.
+- **Round 2 → resolved:** The latest design explicitly reuses server-side permissions and includes isolation tests and rollback conditions.
 
-## 待补充信息
+## Information needed
 
-- 暂无记录。
+- No entries yet.
 
-## 下一步
+## Next steps
 
-- 测量修改前后相同任务的完成时间及误操作。
-- 检查角色权限、越权访问与保存视图的数据隔离。
-- 在真实量级数据上检查查询响应时间。
-- 提供现有界面与典型工作流程，确定试点范围。
+- Measure completion times and errors for the same tasks before and after the changes.
+- Check role permissions, unauthorized access and data isolation in saved views.
+- Check query response times with a realistic volume of data.
+- Provide the current interface and representative workflows to define the pilot scope.
 
-## 运行记录
+## Run record
 
-- 请求模型：demo-scripted
-- 思考强度：none
-- 配置来源：demo；CLI 不读取 ChatGPT 界面选择。
-- 接口报告模型：demo-scripted
-- 已完成审查轮数：2
-- Provider 调用次数：5（脚本演示，真实模型调用为 0）
-- 已报告 token 用量：0；阈值：150000
-- 用量阈值在返回后检查，可能被正在进行的调用超过；错误请求的未报告用量未知。
-- 实际工具验证：无；没有自动检索网页、执行代码或替你修改系统。
+- Requested model: demo-scripted
+- Reasoning effort: none
+- Configuration source: demo; the CLI does not read selections from the ChatGPT interface.
+- Provider-reported model: demo-scripted
+- Completed review rounds: 2
+- Provider calls: 5 (scripted demo; actual model calls: 0)
+- Reported token usage: 0; threshold: 150000
+- The usage threshold is checked after responses return and may be exceeded by calls already in progress; unreported usage from failed requests is unknown.
+- Actual tool validation: none. This program does not automatically browse the web, execute code or modify your systems.

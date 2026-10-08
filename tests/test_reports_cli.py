@@ -42,8 +42,8 @@ class ReportTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;', html)
         self.assertIn("default-src 'none'", html)
         self.assertNotIn('[go](javascript:', markdown)
-        self.assertIn('尚未实际核验', html)
-        self.assertIn('固定离线演示', markdown)
+        self.assertIn('Not independently verified', html)
+        self.assertIn('Fixed offline demo', markdown)
 
     def test_reports_keep_open_critical_issues_and_stopping_reason(self):
         report = demo_report()
@@ -54,8 +54,8 @@ class ReportTests(unittest.TestCase):
             self.assertIn('I-001', output)
             self.assertIn('critical', output)
             self.assertIn('open', output)
-            self.assertIn('达到轮数上限', output)
-            self.assertIn('仍有阻断问题', output)
+            self.assertIn('Round limit reached', output)
+            self.assertIn('Blocking issues remain', output)
 
     def test_unreviewed_revision_cannot_replace_the_last_reviewed_headline(self):
         report = demo_report()
@@ -64,8 +64,8 @@ class ReportTests(unittest.TestCase):
         report['proposal']['recommendation'] = 'UNREVIEWED_NEW_RECOMMENDATION'
         report['decision'], report['status'], report['stop_reason'] = 'undetermined', 'partial', 'provider_error'
         for output in (render_html(report), render_markdown(report)):
-            self.assertIn('尚未复核', output)
-            self.assertIn('最后完成审查', output)
+            self.assertIn('has not been reviewed', output)
+            self.assertIn('last reviewed proposal', output)
             self.assertNotIn('UNREVIEWED_NEW_RECOMMENDATION', output)
 
 

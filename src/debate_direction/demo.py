@@ -4,30 +4,30 @@ from copy import deepcopy
 
 from .provider import Completion
 
-DEMO_QUESTION = "修改客服工单后台，让客服更快找到需要处理的工单。团队只有两周时间，请找出可试点的方向。"
-DEMO_CONTEXT = "固定演示材料：已有工单列表和权限控制。当前没有用户任务耗时数据，也没有提供接口或代码。所有方案仍需验证。"
+DEMO_QUESTION = "Improve the support ticket dashboard so support staff can find tickets that need attention faster. The team has only two weeks; identify a direction suitable for a pilot."
+DEMO_CONTEXT = "Fixed demo context: a ticket list and access controls already exist. No user task timing data, API details or code have been provided. All proposals still require validation."
 
 
 def proposal(revised=False):
     return {
         "needs_clarification": False, "clarification_questions": [],
-        "problem_statement": "客服需要更快找到待处理工单，但具体瓶颈尚未测量。",
-        "goal": "在两周内选择并验证一个可回退的改进方向。",
-        "success_criteria": ["预先记录典型任务耗时与误操作，再比较试点结果。", "保留现有数据权限与工作入口。"],
-        "assumptions": ["团队可以邀请代表性客服参与短期试用。", "现有接口能力尚需查看。"],
+        "problem_statement": "Support staff need to find pending tickets faster, but the specific bottleneck has not been measured.",
+        "goal": "Choose and validate a reversible improvement direction within two weeks.",
+        "success_criteria": ["Record baseline completion times and errors for representative tasks, then compare the pilot results.", "Preserve existing data permissions and workflow entry points."],
+        "assumptions": ["The team can invite representative support staff to a short trial.", "The capabilities of the existing APIs still need to be checked."],
         "options": [
-            {"id": "P1", "title": "重做搜索与智能推荐", "approach": "整体重做搜索，并增加推荐入口。", "tradeoffs": ["范围较大，缺少瓶颈证据。"]},
-            {"id": "P2", "title": "组合筛选与个人视图试点", "approach": "先测量，再小范围增加筛选、排序和保存视图。", "tradeoffs": ["改善范围有限，需要验证接口和权限。"]},
+            {"id": "P1", "title": "Rebuild search and add smart recommendations", "approach": "Rebuild the search experience and add an entry point for recommendations.", "tradeoffs": ["The scope is broad, and there is no evidence identifying the bottleneck."]},
+            {"id": "P2", "title": "Pilot combined filters and personal views", "approach": "Measure first, then run a small pilot with filters, sorting and saved views.", "tradeoffs": ["The improvement scope is limited, and APIs and permissions require validation."]},
         ],
         "recommended_option_id": "P2" if revised else "P1",
-        "recommendation": "先观察典型任务，再试点组合筛选和个人视图；保留旧入口并提供回退。" if revised else "重做搜索并增加智能推荐，以减少查找工单的时间。",
-        "implementation_steps": (["观察典型工单查找任务并记录基线。", "确认现有接口和权限约束。", "做组合筛选、可切换排序与个人视图的小范围试点。", "按事先约定的成功标准决定保留、调整或回退。"] if revised else ["梳理搜索字段。", "开发新搜索与推荐界面。", "邀请客服试用。"]),
-        "conditions": ["试点功能使用现有服务端权限校验。", "若接口不支持所需筛选，应先调整试点范围。"],
-        "validation_steps": ["测量修改前后相同任务的完成时间及误操作。", "检查角色权限、越权访问与保存视图的数据隔离。", "在真实量级数据上检查查询响应时间。"],
-        "public_summary": "撤回整体重做，改为可回退的小范围试点，并把权限检查列入上线条件。" if revised else "优先重做搜索与智能推荐，同时列出小范围筛选试点备选。",
+        "recommendation": "Observe representative tasks first, then pilot combined filters and personal views. Preserve the existing entry point and provide a rollback option." if revised else "Rebuild search and add smart recommendations to reduce the time spent finding tickets.",
+        "implementation_steps": (["Observe representative ticket lookup tasks and record a baseline.", "Confirm existing API capabilities and permission constraints.", "Run a small pilot with combined filters, adjustable sorting and personal views.", "Use the agreed success criteria to decide whether to keep, adjust or roll back the changes."] if revised else ["Review the searchable fields.", "Build the new search and recommendation interface.", "Invite support staff to try it."]),
+        "conditions": ["Pilot features must use the existing server-side permission checks.", "If the APIs do not support the required filters, adjust the pilot scope first."],
+        "validation_steps": ["Measure completion times and errors for the same tasks before and after the changes.", "Check role permissions, unauthorized access and data isolation in saved views.", "Check query response times with a realistic volume of data."],
+        "public_summary": "Withdraw the full rebuild in favor of a small, reversible pilot, with permission checks as a release condition." if revised else "Prioritize rebuilding search and adding smart recommendations, with a small filtering pilot as an alternative.",
         "responses": ([
-            {"issue_id": "I-001", "action": "fix", "summary": "接受范围和证据不足的异议，撤回整体重做。", "change": "改选 P2，先测量再试点。"},
-            {"issue_id": "I-002", "action": "fix", "summary": "个人视图只保存筛选配置，仍由服务端按现有权限查询。", "change": "增加权限测试与失败回退条件。"},
+            {"issue_id": "I-001", "action": "fix", "summary": "Accept the concerns about scope and insufficient evidence, and withdraw the full rebuild.", "change": "Switch to P2: measure first, then run the pilot."},
+            {"issue_id": "I-002", "action": "fix", "summary": "Personal views save only filter settings; server-side queries still enforce existing permissions.", "change": "Add permission tests and rollback conditions for failures."},
         ] if revised else []),
     }
 
@@ -40,25 +40,25 @@ class DemoProvider:
             data = proposal(revised=phase == "revise")
         elif phase == "risk_scan":
             data = {"needs_clarification": False, "clarification_questions": [],
-                    "success_criteria": ["目标应以任务耗时与误操作衡量。", "两周内可回退。"],
+                    "success_criteria": ["Measure the goal through task completion times and errors.", "Keep the changes reversible within the two-week period."],
                     "risk_areas": [
-                        {"id": "R1", "severity": "high", "concern": "没有证据表明搜索是主要瓶颈。", "check": "先观察真实任务。"},
-                        {"id": "R2", "severity": "high", "concern": "个人视图可能意外扩大数据权限。", "check": "服务端复用现有权限校验。"},
-                    ], "public_summary": "先独立检查瓶颈证据、两周范围、权限与可回退性。"}
+                        {"id": "R1", "severity": "high", "concern": "There is no evidence that search is the main bottleneck.", "check": "Observe real tasks first."},
+                        {"id": "R2", "severity": "high", "concern": "Personal views could unintentionally expand access to data.", "check": "Reuse the existing server-side permission checks."},
+                    ], "public_summary": "Independently assess the bottleneck evidence, two-week scope, permissions and reversibility."}
         elif phase == "review" and round_number == 1:
-            data = {"assessment": "revise", "public_summary": "整体重做缺少瓶颈证据，且权限约束没有落实到具体设计。",
+            data = {"assessment": "revise", "public_summary": "The full rebuild lacks evidence of the bottleneck, and the design does not yet specify how permission constraints will be enforced.",
                     "clarification_questions": [],
                     "new_issues": [
-                        {"id": "I-001", "severity": "high", "title": "重做范围缺少依据", "description": "没有任务数据支持重做搜索，难以证明两周内值得投入。", "target": "P1", "resolution_criterion": "缩小改动范围，并先测量基线。"},
-                        {"id": "I-002", "severity": "high", "title": "个人视图权限边界不清", "description": "保存视图不能跳过服务端工单权限。", "target": "P2", "resolution_criterion": "将现有权限校验和隔离测试写入设计与上线条件。"},
-                    ], "issue_evaluations": [], "conditions": ["保留旧入口。"], "next_steps": ["将改动收窄为可回退的试点。"]}
+                        {"id": "I-001", "severity": "high", "title": "The rebuild scope lacks supporting evidence", "description": "No task data supports rebuilding search, so the investment is difficult to justify within two weeks.", "target": "P1", "resolution_criterion": "Reduce the change scope and measure a baseline first."},
+                        {"id": "I-002", "severity": "high", "title": "Permission boundaries for personal views are unclear", "description": "Saved views must not bypass server-side ticket permissions.", "target": "P2", "resolution_criterion": "Include existing permission checks and isolation tests in the design and release conditions."},
+                    ], "issue_evaluations": [], "conditions": ["Preserve the existing entry point."], "next_steps": ["Narrow the changes to a reversible pilot."]}
         elif phase == "review":
-            data = {"assessment": "accept", "public_summary": "接受小范围试点方向；瓶颈改善与性能仍须实测。",
+            data = {"assessment": "accept", "public_summary": "Accept the small pilot direction; its effect on the bottleneck and performance still require measurement.",
                     "clarification_questions": [], "new_issues": [],
                     "issue_evaluations": [
-                        {"issue_id": "I-001", "status": "resolved", "rationale": "最新方案已撤回整体重做，改为先测量再试点。"},
-                        {"issue_id": "I-002", "status": "resolved", "rationale": "最新设计明确复用服务端权限，并列出隔离测试及回退条件。"},
-                    ], "conditions": ["接口、权限与真实性能检查通过后才开展试点。"], "next_steps": ["提供现有界面与典型工作流程，确定试点范围。"]}
+                        {"issue_id": "I-001", "status": "resolved", "rationale": "The latest proposal withdraws the full rebuild and instead measures a baseline before the pilot."},
+                        {"issue_id": "I-002", "status": "resolved", "rationale": "The latest design explicitly reuses server-side permissions and includes isolation tests and rollback conditions."},
+                    ], "conditions": ["Begin the pilot only after the API, permission and realistic performance checks pass."], "next_steps": ["Provide the current interface and representative workflows to define the pilot scope."]}
         else:
             raise ValueError("Unsupported demo phase")
         if phase == "review":

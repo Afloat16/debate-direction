@@ -1,31 +1,31 @@
-# 宿主兼容规则
+# Host compatibility
 
-先读取当前工具定义。下面是路由说明，不保证任何工具在每个宿主都存在；不要调用文档未提供的参数。
+Read the current tool definitions first. The following routing guidance does not imply that a tool exists on every host. Do not call undocumented parameters.
 
-## 原生协作宿主
+## Native collaboration hosts
 
-存在 `collaboration.spawn_agent` 时，使用它创建两个子智能体。存在 `followup_task` 时，用它让已结束一轮的原 agent 继续；使用 `send_message` 向正在运行的原 agent 补充信息。用 `list_agents`、`wait_agent` 或宿主等效能力观察完成状态，不根据时间推断已完成。取消时按当前 API 使用中断或关闭能力，并保存此前有效记录。
+When `collaboration.spawn_agent` exists, use it to create two child agents. When `followup_task` exists, use it to resume an original agent that has completed a turn. Use `send_message` to add information to an agent that is still running. Observe completion through `list_agents`, `wait_agent`, or the host's equivalent capabilities; do not infer completion from elapsed time. On cancellation, use the current API's interrupt or close capability and preserve the valid record accumulated so far.
 
-| 检查项 | 处理规则 |
+| Check | Required handling |
 | --- | --- |
-| 模型和思考强度 | 省略所有显式覆盖，使用宿主明确说明的父会话继承。无法通过工具读取具体值时填写 `unknown`，不要从产品名称、界面印象或系统日期推断。 |
-| 自定义角色配置 | 仅在当前工具和可读配置明确支持时检查 agent 类型是否覆盖模型或强度。优先无覆盖的默认 agent；不要读取凭证或无关用户配置。 |
-| `fork_turns="none"` | 仅在工具文档确认该模式也继承父模型和强度时选择。否则使用有继承保证的模式。 |
-| 全历史继承 | 先创建两个仅确认就绪的角色，再通过原 ID 发出 `start_opening`；若宿主可同时提交隔离任务，也可一次提交双方。给相同的共同简报，注明只使用其中的任务事实。报告共享上下文与同模型导致的相关性局限，不声称统计独立。 |
-| 两个槽位不足 | 按宿主正常调度等待可用能力，或说明阻塞；不要中断用户其他任务来挤出槽位。若不能完成两个真实开场，以 `unsupported` 或部分启动后的 `provider_error` 结束。 |
-| 后续轮次 | 复用本次两个真实 ID；不要通过新建代理替代丢失的原 agent，然后声称角色连续。无法恢复时以 `provider_error` 结束并报告不完整。 |
-| 无法读取会话设置 | 若文档明确保证继承，可运行并标记 `documented_inheritance`。既无法核实又无继承保证时标记 `unverified`，以 `unsupported` 结束，提出可行的宿主配置步骤。 |
-| 已知无法继承 | 以 `unsupported` 结束。若用户另行明确允许不同配置，可按新要求开始独立运行，并披露配置变化。 |
+| Model and reasoning effort | Omit all explicit overrides and use the host's documented parent-conversation inheritance. If tools cannot read the actual values, record `unknown`; do not infer them from a product name, an impression of the interface, or the system date. |
+| Custom role configuration | Check agent-type overrides only where the current tools and readable configuration explicitly support this. Prefer a default agent without overrides. Do not read credentials or unrelated user configuration. |
+| `fork_turns="none"` | Select this only when the tool documentation confirms that it also inherits the parent's model and reasoning effort. Otherwise use a mode with a documented inheritance guarantee. |
+| Full-history inheritance | First create two roles that only acknowledge readiness, then issue `start_opening` through their original IDs. If the host supports submitting isolated tasks together, both may be submitted at once. Supply the same shared brief and instruct agents to use only its task facts. Report the limitations of shared context and correlated errors from the same model; do not claim statistical independence. |
+| Fewer than two available slots | Wait through the host's normal scheduling or explain the block. Do not interrupt the user's other tasks to free slots. If two real openings cannot be completed, stop with `unsupported`, or `provider_error` after a partial launch. |
+| Later rounds | Reuse the two real IDs from this run. Do not replace a lost agent with a new one and claim role continuity. If the original agent cannot be resumed, stop with `provider_error` and report the incomplete run. |
+| Conversation settings cannot be read | When documentation explicitly guarantees inheritance, proceed with `documented_inheritance`. When neither verification nor a documented guarantee is available, record `unverified`, stop with `unsupported`, and offer concrete host-configuration steps. |
+| Inheritance is known to be unavailable | Stop with `unsupported`. If the user later explicitly permits different settings, start a separate run under the revised requirement and disclose the configuration change. |
 
-### 创建示例
+### Creation examples
 
-仅当当前 `spawn_agent` 文档明确保证全历史模式继承父模型和强度时，采用下列形状。两次创建均省略 `model` 和 `reasoning_effort`，先准备两个角色，避免第一个 agent 过早完成实质开场并污染第二个的继承上下文。
+Use these call shapes only when the current `spawn_agent` documentation explicitly guarantees that full-history mode inherits the parent's model and reasoning effort. Omit `model` and `reasoning_effort` in both calls. Prepare both roles before opening the debate so the first agent cannot finish a substantive opening early and contaminate the second agent's inherited context.
 
 ```json
 {
   "task_name": "debate_pro_<run_id>",
   "fork_turns": "all",
-  "message": "phase: prepare。你是本次固定正方。此条仅回复 ready 并等待 start_opening，不提出任何方案或立场；不读取其他 agent 的本次输出，不创建其他 agent。后续只基于下附共同任务简报工作，输出公开结论与简短依据，不输出私有思维链。<共同简报>"
+  "message": "phase: prepare. You are the fixed PRO agent for this run. Reply only with ready and wait for start_opening. Do not propose a solution or position yet. Do not read other agents' output from this run or create other agents. In later turns, use only the shared task brief below, and provide public conclusions with concise reasons, without private chain-of-thought. <shared task brief>"
 }
 ```
 
@@ -33,18 +33,18 @@
 {
   "task_name": "debate_con_<run_id>",
   "fork_turns": "all",
-  "message": "phase: prepare。你是本次固定反方。此条仅回复 ready 并等待 start_opening，不提出任何风险或立场；不读取其他 agent 的本次输出，不创建其他 agent。后续只基于下附共同任务简报工作，输出公开结论与简短依据，不输出私有思维链。<相同共同简报>"
+  "message": "phase: prepare. You are the fixed CON agent for this run. Reply only with ready and wait for start_opening. Do not propose risks or a position yet. Do not read other agents' output from this run or create other agents. In later turns, use only the shared task brief below, and provide public conclusions with concise reasons, without private chain-of-thought. <the same shared task brief>"
 }
 ```
 
-将 `run_id` 规范为当前宿主允许的任务名字符，例如小写字母、数字与下划线。捕获工具返回的真实 agent ID，不能把 `task_name` 当作创建成功的证据。模板中的占位符必须替换为本次真实信息。
+Normalize `run_id` to task-name characters permitted by the current host, such as lowercase letters, digits, and underscores. Capture the actual agent IDs returned by the tools; a `task_name` is not proof of successful creation. Replace all placeholders with the actual run information.
 
-双方就绪后，对原 ID 使用宿主支持的恢复能力，分别发送 `start_opening` 和 SKILL.md 中对应角色的开场要求。第二条开场指令不能包含第一方的实质输出。若任一 agent 违反准备阶段要求过早输出立场，且该输出已进入对手继承的上下文，不能声称完成了盲开场；优先按宿主真正支持的隔离方式修复，否则以 `invalid_response` 结束，禁止偷偷新建第三个 agent。
+Once both agents are ready, use the host's supported resumption capability on the original IDs to send `start_opening` and each role's opening requirements from SKILL.md. The second opening instruction must not include the first agent's substantive output. If an agent violates the preparation requirement by producing a position early, and that output enters the opponent's inherited context, do not claim a blind opening. Repair the situation only through context isolation the host actually supports. Otherwise stop with `invalid_response`; never secretly create a third agent.
 
-## 其他宿主
+## Other hosts
 
-当宿主使用其他命名的真实子智能体 API 时，把创建、恢复、等待和取消映射到其文档支持的调用，并保持角色数量、配置继承和台账语义不变。
+When a host exposes real child-agent APIs under other names, map creation, resumption, waiting, and cancellation to its documented calls while preserving the role count, configuration inheritance, and ledger semantics.
 
-仅有普通单模型文本生成接口、命令行内自称多角色，或只允许编辑提示词但无法创建子智能体时，原生模式不可用。清楚报告能力限制，不运行虚构的双 agent 过程。不要静默切换到 API 模式、要求密钥或付费服务；另行配置的 API 模式必须准确披露它使用的设置，不能声称自动读取当前聊天界面的选择。
+Native mode is unavailable when the host provides only ordinary single-model text generation, labels text as multiple roles without creating agents, or permits prompt editing but no child-agent creation. Clearly report the capability gap without inventing a two-agent process. Do not silently switch to API mode, request a key, or introduce a paid service. A separately configured API mode must accurately disclose its settings and must not claim to read the current chat interface's model selection automatically.
 
-本技能的配置一致性是一条可审计约束，不是可跨平台保证的功能。报告宿主实际能力与证据，优先提供可修复的下一步。
+Treat configuration consistency as an auditable constraint, not a cross-platform guarantee. Report the host's actual capabilities and evidence, and provide concrete steps to address limitations.

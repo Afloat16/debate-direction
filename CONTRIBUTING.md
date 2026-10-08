@@ -1,6 +1,6 @@
 # Contributing
 
-欢迎提交真实失败案例、协议改进与代码修复。请去除问题、材料和报告中的个人信息与密钥。
+Contributions of actual failure cases, protocol improvements, and code fixes are welcome. Remove personal information and credentials from questions, source material, and reports before sharing them.
 
 ## Local checks
 

@@ -1,6 +1,6 @@
-本文件是虚构的示例材料，不是实际产品事实。
+This file contains fictional example material, not facts about an actual product.
 
-已知：有工单列表、关键词搜索、状态筛选。权限由服务端按用户角色控制。
-约束：两周内可以尝试一个小改动；保留当前工作入口；避免整体重写。
-未知：没有真实任务耗时、界面截图、代码或接口文档，尚未确认瓶颈。
-期望：输出首选试点、替代方向、主要异议、成立条件和验收办法。
+Known: The dashboard has a ticket list, keyword search, and status filters. The server controls access according to user roles.
+Constraints: Try one small change within two weeks; retain the current workflow entry point; avoid a complete rewrite.
+Unknown: No actual task timings, interface screenshots, code, or API documentation are available. The bottleneck has not been established.
+Expected output: A preferred pilot, alternative directions, material objections, conditions for adoption, and acceptance checks.

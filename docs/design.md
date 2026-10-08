@@ -1,62 +1,62 @@
-# 协议与设计决策
+# Debate Direction protocol and design decisions
 
-## 目标
+## Goal
 
-把一个模糊需求变成可审查的候选方向、主要异议和验证步骤。双 agent 的作用是扩大审查视角、暴露前提和追踪修订，不能证明结论必然正确。
+Turn an ambiguous requirement into a reviewable candidate direction, material objections, and validation steps. Two agents broaden the review, expose assumptions, and track revisions; they do not prove that the conclusion is correct.
 
-## 两条运行路径
+## Two execution paths
 
-| 路径 | agent 如何运行 | 模型与思考强度来源 | 适合场景 |
+| Path | How the agents run | Model and reasoning-effort source | Intended use |
 | --- | --- | --- | --- |
-| 原生技能 | 宿主实际创建两个子 agent，并保持线程继续交锋 | 宿主支持且可依据的父会话继承；不得擅自指定另一模型 | 在 ChatGPT Work / Codex 支持的环境中直接提问 |
-| Python CLI | 两个独立角色历史，由同一 Responses provider 处理 | 显式参数、调用方 JSON，或完整环境变量对 | 脚本、其他应用集成、可重复测试 |
+| Native skill | The host creates two actual subagents and continues their existing threads through the debate | Documented parent-session inheritance supported by the host; no unrequested model override | Direct requests in compatible ChatGPT Work / Codex environments |
+| Python CLI | Two separate role histories handled by one Responses provider | Explicit arguments, caller-supplied JSON, or a complete environment-variable pair | Scripts, application integrations, and repeatable tests |
 
-两条路径共享语义，不假装具有相同权限与运行环境。CLI 中 `session_config` 表示调用方给出的参数，不是对其真实性的认证。模型可能共享训练偏差；“独立”只描述角色上下文与盲开场。
+The paths share protocol semantics while retaining their actual permissions and execution environments. In the CLI, `session_config` contains caller-supplied settings; it does not authenticate their origin. The model can share training biases across roles. Here, "independent" describes role contexts and blind openings, not statistical independence.
 
-## 状态转移
+## CLI state transitions
 
-1. 校验唯一不可变配置、输入长度及预算。
-2. 同时运行正方初始提案和反方盲风险扫描。两者不能先看到对方答案。
-3. 将提案交给反方审查，形成第 1 轮。
-4. 正方逐项回答累计未解决问题并提交新版本；反方审查该版本。
-5. 达到收敛、关键缺失信息、停滞、轮数/用量/时间限制或错误时停止。
-6. 由确定性代码生成结果与报告，不增加一个自由改写结论的模型。
+1. Validate the single immutable configuration, input length, and budget.
+2. Run the proposer's initial proposal and the critic's blind risk scan concurrently. Neither opening receives the other role's answer.
+3. Send the opening proposal to the critic for review round one.
+4. Have the proposer respond to every accumulated unresolved issue and submit a new version; have the critic review that exact version.
+5. Stop on convergence, essential missing information, stalled discussion, round/usage/time limits, or errors.
+6. Generate the result and report with deterministic code, without adding another model that can freely rewrite the conclusion.
 
-默认至少两轮、最多四轮。完整上限为 `2 × max_rounds + 1` 次 provider 调用（默认最多 9 次）。盲开场的两个调用并发；有依赖的交锋按顺序进行。独立风险扫描不计为一次方案评审。
+The default is at least two and at most four review rounds. The CLI permits at most `2 × max_rounds + 1` provider calls, or nine with the default settings. The two blind opening calls run concurrently; dependent exchanges run sequentially. The independent risk scan does not count as a proposal review.
 
-## 问题账本
+## Issue ledger
 
-每个问题记录稳定 ID、严重性、目标、问题说明、解除条件、状态及处理历史。正方只能提出 `fix`、`rebut`、`accept_risk` 或 `request_clarification` 回应，不能自行修改问题严重性或关闭状态。反方评估引用对应 ID，必须说明理由；旧问题不会因省略而删除。
+Each issue records a stable ID, severity, target, description, resolution criterion, status, and history. The proposer can respond with `fix`, `rebut`, `accept_risk`, or `request_clarification`, but cannot change an issue's severity or close it unilaterally. The critic must evaluate the corresponding ID and provide a reason. An existing issue is not deleted merely because a later response omits it.
 
-`resolved` 仅表示提出的异议在论证中被处理，不表示已通过实际测试。`accepted_risk` 仍是接受了一个风险，应显示条件；重大风险不会因为改名消失。最终方案必须显示它是否被反方审查，不能将旧版本的认可挪到新版本上。
+`resolved` means an objection was addressed in the discussion, not that it passed an actual test. `accepted_risk` remains a risk and must be presented with its conditions; renaming a material risk cannot make it disappear. The final proposal must indicate whether the critic reviewed it. Acceptance of an older version cannot be transferred to a newer version.
 
-## 决策与验证分离
+## Separate the decision from validation
 
-| 字段 | 含义 |
+| Field | Meaning |
 | --- | --- |
-| `status` | 流程完成、部分完成或需要信息 |
-| `stop_reason` | 实际为何停止；轮数耗尽不等于收敛 |
+| `status` | Completed, partially completed, or awaiting essential information |
+| `stop_reason` | The actual reason for stopping; exhausting the round limit does not imply convergence |
 | `decision` | `ready_to_validate` / `conditional` / `blocked` / `needs_clarification` / `undetermined` |
-| `verification_status` | CLI 固定为 `not_checked`；它没有执行检索或测试 |
-| `model_identity` | 请求的模型与接口报告的模型，避免把请求值冒充执行结果 |
-| `usage` | 已报告 token、实际 provider 调用数、调用上界和阈值是否已超过 |
+| `verification_status` | Always `not_checked` in the CLI, which does not retrieve evidence or execute tests |
+| `model_identity` | The requested model and the model reported by the provider, so a requested setting is not presented as an observed execution result |
+| `usage` | Reported tokens, actual provider call count, call limit, and whether the usage threshold was exceeded |
 
-“找到可行修改方案”如果连修改对象都没有，会得到缺失信息与后续问题，而非虚构某个产品。已有对象时，可以用明确标记的假设继续，推荐方向仍需要相应验证。
+A request such as "Find a feasible modification" without an object to modify should produce the missing information and follow-up questions, not an invented product. When the object is known, discussion can continue with explicitly labeled assumptions, and the recommended direction still requires the corresponding validation.
 
-## 用量、时间与故障
+## Usage, time, and failures
 
-`max_total_tokens` 是对接口已经报告用量的停止阈值，不是精确计费上限。并发开场或正在进行的调用可能超过它；失败调用未返回 usage 时，额外用量未知。`max_output_tokens` 包含内部推理用量，高强度运行可能在没有完整公开答案前就耗尽，需要调用方调整上限。
+`max_total_tokens` is a stopping threshold for usage already reported by the provider, not a precise spending cap. Concurrent openings or in-flight calls can exceed it. Additional usage is unknown when a failed call returns no usage metadata. `max_output_tokens` includes internal reasoning tokens; a high-effort call may exhaust that allowance before returning a complete public answer, requiring the caller to adjust the limit.
 
-不自动重试，不静默换模型、降低思考强度或删除不支持的参数。单次请求有 timeout；总时长达到阈值后不再发起后续调用，进行中的请求受其单次 timeout 限制。取消或失败时尽量保存已经完成的论证，不能把单方输出当完整双 agent 结论。
+The CLI does not retry automatically, silently switch models, reduce reasoning effort, or remove unsupported parameters. Each request has a timeout. Once the total duration reaches its threshold, no further calls start; in-flight requests remain subject to their individual timeouts. Cancellation or failure preserves completed work where possible and cannot turn one role's output into a completed two-agent conclusion.
 
-## 证据边界
+## Evidence boundaries
 
-模型自述“我测试过”“研究表明”或生成一个 URL，都不是工具验证。CLI 的方案、条件和验证步骤来自生成文本及用户材料；没有网页读取、执行测试或外部行为。原生技能可在宿主允许的范围内读取材料，并必须指明实际证据。双方意见一致不能改变证据状态。
+A model saying "I tested it," asserting "research shows," or generating a URL is not tool-based verification. CLI proposals, conditions, and validation steps come from generated text and user-supplied material; the CLI does not read webpages, execute tests, or perform external actions. The native skill can read material within the host's available permissions and must identify the evidence actually obtained. Agreement between the roles cannot change the evidence status.
 
-## 参考资料
+## References
 
-- [OpenAI：子 agent 与模型继承](https://learn.chatgpt.com/docs/agent-configuration/subagents)
-- [OpenAI：Responses API 推理参数](https://developers.openai.com/api/docs/guides/reasoning)
-- [OpenAI：结构化输出](https://developers.openai.com/api/docs/guides/structured-outputs)
+- [OpenAI: subagents and model inheritance](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+- [OpenAI: Responses API reasoning parameters](https://developers.openai.com/api/docs/guides/reasoning)
+- [OpenAI: structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
-这些接口与宿主能力会演进，调用方应以其实际可用的版本与权限为准。项目不硬编码某一个“最新模型”。
+These interfaces and host capabilities evolve. Callers should use the versions and permissions actually available to them. The project does not hard-code a particular "latest model."

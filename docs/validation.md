@@ -1,47 +1,49 @@
-# v0.1 验证记录
+# Debate Direction v0.1 validation record
 
-验证日期：2026-10-08。下列结果分别说明实现、编排和生成质量的覆盖范围，不能相互替代。
+Validation date: 2026-10-08. The results below describe separate coverage of implementation, orchestration, and generated-output quality. Evidence for one does not substitute for evidence for another.
 
-## 已完成的检查
+The English-language documentation update does not constitute a new native-agent exercise or a live Responses API run.
 
-| 检查 | 结果 | 能支持的结论 |
+## Completed checks
+
+| Check | Result | What it supports |
 | --- | --- | --- |
-| Python 3.12 离线单元测试 | 69 项通过 | 受控输入下的配置、API 适配、协议状态、故障及导出行为符合测试断言 |
-| CLI 固定演示 | 生成 HTML、Markdown、JSON | 入口、两角色协议和报告导出可以端到端运行；真实模型调用为 0 |
-| Python 包构建与独立目录安装 | 成功；安装后版本命令与演示通过 | 包结构与命令行入口可安装运行 |
-| 原生技能结构校验 | 通过 | 技能元数据与文件结构有效 |
-| 原生真实双 agent 演练 | 两个持续角色，完成两轮有效评审 | 当前有子 agent 能力的宿主能执行准备、盲开场、版本评审和最终报告 |
-| 模型设置继承 | 按当前宿主明确提供的继承规则，未传模型或强度覆盖 | 配置来源为 `documented_inheritance`；没有冒称读取到两个线程的运行时型号和强度 |
+| Python 3.12 offline unit tests | 69 passed | Configuration, API adaptation, protocol state, failure handling, and export behavior satisfy the assertions under controlled inputs |
+| Fixed CLI demonstration | Generated HTML, Markdown, and JSON | The entry point, two-role protocol, and report export run end to end; actual model calls: 0 |
+| Python package build and installation into a separate directory | Succeeded; the installed version command and demonstration passed | The package structure and CLI entry point can be installed and run |
+| Native skill structural validation | Passed | The skill metadata and file structure are valid |
+| Native exercise with two real agents | Two continuing roles completed two valid review rounds | The current host, which supports subagents, can perform preparation, blind openings, version-specific reviews, and final reporting |
+| Model-setting inheritance | Followed the current host's documented inheritance rules without model or effort overrides | The configuration source is `documented_inheritance`; this does not claim that either thread's actual runtime model or effort was read |
 
-原生演练使用自拟的摄影器材预约场景，公开摘要见 [真实运行示例](native-example.md)。本次演练第一轮就接受方向，第二轮复核边界后继续接受；没有为了产生戏剧化交锋而虚构问题。另一个固定离线示例覆盖了“提出问题—修改—接受”的可见过程。
+The native exercise used an invented photography-equipment booking scenario. A public account is available in the [native run example](native-example.md). The critic accepted the direction in round one and accepted it again after reviewing boundaries in round two. Issues were not fabricated to make the exchange more dramatic. The separate, fixed offline example demonstrates the visible sequence of raising issues, revising a proposal, and accepting it.
 
-## 测试重点
+## Test coverage
 
-- 模型和思考强度必须来自一组明确配置，拒绝混合半组参数、伪称当前 UI 继承及参数冲突。
-- CLI 的两个盲开场分别收到独立的公开角色历史；后续复用各自历史。原生宿主的全历史继承仍包含共同上下文。
-- 所有历史问题必须重审，包括已解决问题；省略、重复、未知 ID 或错误方案版本不能改变有效台账。
-- 正方不能自行解决异议；接受风险不能被当成修复，重大未决问题阻止就绪判断。
-- 拒绝结构不完整、拒答、截断、用量缺失和模型漂移；错误后保留能够确认的部分结果。
-- 取消、时长、token 停止阈值与调用上界；进行中的调用可能产生额外用量。
-- 报告转义、目录覆盖保护、结构完整性，以及最后已审方案和未审修订的区分。
+- Model and reasoning effort must come from one explicit configuration pair. Mixed partial sources, false claims of current-UI inheritance, and conflicting settings are rejected.
+- The CLI's blind openings receive separate public role histories, which are reused in later rounds. Full-history inheritance in the native host still includes shared context.
+- Every historical issue must be reviewed again, including resolved issues. Omitted, duplicated, or unknown IDs and incorrect proposal versions cannot alter the valid ledger.
+- The proposer cannot resolve objections unilaterally. Accepting a risk cannot be relabeled as fixing it, and material unresolved issues prevent a readiness judgment.
+- Incomplete structures, refusals, truncated responses, missing usage, and model drift are rejected. Confirmable partial results are retained after errors.
+- Cancellation, duration and token thresholds, and the call limit are covered. In-flight calls can incur additional usage.
+- Report escaping, directory overwrite protection, structural integrity, and the distinction between the last reviewed proposal and an unreviewed revision are covered.
 
-## 演练中发现并处理的偏差
+## Generation error found and addressed during the exercise
 
-两个原生角色的初始开场都将“试点前需要确认的事项”标成了阻塞澄清。协调者各向原有角色请求了一次语义修复：保留问题和条件，改为不阻塞当前方向判断。修复没有计入正式评审轮次，也没有新增 agent。
+Both native roles initially classified matters to confirm before a pilot as blocking clarification. The coordinator asked each original role for one semantic correction: retain the questions and conditions, but do not make them block the current choice of direction. These corrections did not count as formal review rounds and did not introduce additional agents.
 
-随后在技能协议中补充了更明确的判断规则：`needs_clarification` 仅用于阻止当前方向判断的高影响缺口；可作为试点条件的未知项不必阻止讨论。该说明完成结构校验，但未另行运行第二个原生案例，因此不能声称已消除所有同类生成偏差。
+The skill protocol was subsequently clarified: `needs_clarification` is reserved for high-impact gaps that prevent the current direction decision; unknowns that can remain pilot conditions need not stop discussion. That clarification passed structural validation, but a second native case was not run afterward. It therefore cannot be claimed to have eliminated every instance of this generation error.
 
-## 尚未验证
+## Not yet verified
 
-- **未执行真实 Responses API 端到端调用。** 发布环境没有 API 密钥。provider 的请求及错误处理使用受控 transport 测试，不能据此证明任意模型、账户、参数组合均已在线兼容。
-- **未进行现实方案验证。** 原生演练与 CLI 演示都没有访问真实工作室、联系成员、配置工具或进行试点；相关结果为 `not_checked`。
-- 原生案例的准备、演练与一周试点没有核实总耗时；双方接受方向并不证明能在输入要求的七天内完成全部步骤。
-- **HTML 未完成浏览器视觉验收。** 本地浏览器执行依赖不可用，云浏览器安全策略不允许本地 `file:` 预览。已检查导出内容、转义及无外部脚本等行为，未把这些检查说成截图验收。
-- 尚无跨宿主实测、长期运行、真实 API 成本基准或大样本方案质量评估。不能承诺双 agent 总比单 agent 正确。
+- **No live Responses API end-to-end call was performed.** No API key was available in the release environment. Provider requests and error handling were tested with a controlled transport; those tests do not establish online compatibility for every model, account, or parameter combination.
+- **No real-world validation of the proposed directions was performed.** Neither the native exercise nor the CLI demonstration visited an actual studio, contacted members, configured tools, or ran a pilot. Their verification status remains `not_checked`.
+- The total time required for preparation, rehearsal, and the one-week pilot in the native case was not checked. Acceptance by both roles does not establish that all steps fit within the seven days requested in the input.
+- **HTML did not receive a visual acceptance check in a browser.** Dependencies needed for local browser execution were unavailable, and the cloud browser's security policy did not permit local `file:` previews. Exported content, escaping, and the absence of external scripts were checked; those checks were not presented as screenshot-based acceptance.
+- There has been no cross-host validation, long-running deployment, real API cost benchmark, or large-sample evaluation of proposal quality. The project cannot promise that two agents are always more accurate than one.
 
-GitHub Actions 配置在 Python 3.11、3.12、3.13 上运行离线测试、演示和安装检查；各次远端运行结果以仓库的 Actions 记录为准。
+GitHub Actions is configured to run offline tests, the demonstration, and installation checks on Python 3.11, 3.12, and 3.13. The repository's Actions records are the source for the outcome of each remote run.
 
-## 重现离线验证
+## Reproduce the offline checks
 
 ```bash
 PYTHONPATH=src python3 -m unittest discover -s tests -v
@@ -50,4 +52,4 @@ python3 -m pip install .
 debate-direction --version
 ```
 
-真实模型运行方法见 [README](../README.md)。请保留实际配置、报告和失败状态，避免只记录成功案例。
+See the [README](../README.md) for live-model usage. Retain the actual configuration, reports, and failure states rather than documenting only successful cases.

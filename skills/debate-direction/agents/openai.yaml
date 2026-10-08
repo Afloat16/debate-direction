@@ -1,4 +1,4 @@
 interface:
-  display_name: "方向辩论"
-  short_description: "启动两个真实智能体反复提案与质疑，澄清需求并给出可验证的行动方向"
-  default_prompt: "使用 $debate-direction，让两个智能体围绕我的模糊需求辩论，返回核心过程、未决问题与下一步验证方案。"
+  display_name: "Debate Direction"
+  short_description: "Two real agents debate needs and produce testable directions"
+  default_prompt: "Use $debate-direction to debate my ambiguous request with two agents and return the key exchanges, unresolved issues, and next validation steps."
