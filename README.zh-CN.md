@@ -8,6 +8,16 @@
 
 [English](README.md) · [安装指南](docs/installation.md) · [模型服务商](docs/providers.md) · [宿主兼容性](skills/debate-direction/references/host-compatibility.md) · [验证记录](docs/validation.md) · [MIT](LICENSE)
 
+## 适用场景
+
+| 场景 | 建议要求它交付什么 |
+| --- | --- |
+| 功能需求尚不明确 | 约束、必要澄清问题与可衡量的验收条件 |
+| 架构或设计方案有多条路线 | 权衡、重要异议，以及能区分方案的最低成本验证 |
+| 已有方案需要再次审查 | 版本化修订、问题台账、保留的风险与具体下一步 |
+
+安装前可预览[固定演示报告](examples/demo-output/report.md)及其[结构化 JSON](examples/demo-output/report.json)，或阅读[已记录的原生演练](docs/native-example.md)。这些示例展示报告流程，不证明新方案已经正确。
+
 ## 一条命令安装
 
 ### macOS 和 Linux
@@ -219,3 +229,7 @@ v0.2 增加了各操作系统的安装器、本地设置／诊断、原生宿主
 ## 许可证
 
 [MIT](LICENSE)。欢迎贡献和改编。
+
+## 相关开源项目
+
+按用途浏览 [Afloat16 项目导航](https://github.com/Afloat16/research-to-fix/blob/main/docs/PROJECTS.md)，选择需求论证、调研修复、任务验收、接口诊断、通知、MCP 建议或本地重建工具。

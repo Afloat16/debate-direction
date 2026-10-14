@@ -8,6 +8,16 @@ Consensus is not proof of correctness. Two roles using the same model can share 
 
 [Simplified Chinese](README.zh-CN.md) · [Installation guide](docs/installation.md) · [Providers](docs/providers.md) · [Host compatibility](skills/debate-direction/references/host-compatibility.md) · [Validation](docs/validation.md) · [MIT](LICENSE)
 
+## Where it helps
+
+| Situation | What to ask for |
+| --- | --- |
+| An unclear feature request | Constraints, essential clarifications, and measurable acceptance criteria |
+| Competing architecture or design options | Tradeoffs, consequential objections, and the cheapest validation that could distinguish them |
+| A proposal that needs a second look | Versioned revisions, an issue ledger, retained risks, and concrete next steps |
+
+Preview the [fixed demo report](examples/demo-output/report.md) and its [structured JSON](examples/demo-output/report.json), or read the [documented native exercise](docs/native-example.md). These examples show the reporting workflow; they are not evidence that a new proposal is correct.
+
 ## Install with one command
 
 ### macOS and Linux
@@ -219,3 +229,7 @@ Project descriptions, metadata, CLI messages, report labels and examples use Eng
 ## License
 
 [MIT](LICENSE). Contributions and adaptations are welcome.
+
+## Related projects
+
+See the [Afloat16 project guide](https://github.com/Afloat16/research-to-fix/blob/main/docs/PROJECTS.md) for requirements debate, evidence-driven debugging, task checks, endpoint diagnostics, notifications, MCP advice, and local reconstruction.
