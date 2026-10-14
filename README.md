@@ -6,7 +6,7 @@ Give it a question and the relevant context. The proposer develops options; the 
 
 Consensus is not proof of correctness. Two roles using the same model can share blind spots. The result is a direction to validate, with its assumptions still visible.
 
-[Simplified Chinese](README.zh-CN.md) · [Installation guide](docs/installation.md) · [Providers](docs/providers.md) · [Host compatibility](skills/debate-direction/references/host-compatibility.md) · [Validation](docs/validation.md) · [MIT](LICENSE)
+**English** · [简体中文](README.zh-CN.md) · [Installation guide](docs/installation.md) · [Providers](docs/providers.md) · [Host compatibility](skills/debate-direction/references/host-compatibility.md) · [Validation](docs/validation.md) · [MIT](LICENSE)
 
 ## Where it helps
 
@@ -232,4 +232,5 @@ Project descriptions, metadata, CLI messages, report labels and examples use Eng
 
 ## Related projects
 
-See the [Afloat16 project guide](https://github.com/Afloat16/research-to-fix/blob/main/docs/PROJECTS.md) for requirements debate, evidence-driven debugging, task checks, endpoint diagnostics, notifications, MCP advice, and local reconstruction.
+See the [Afloat16 project guide](https://github.com/Afloat16/research-to-fix/blob/main/docs/PROJECTS.md) for robotics diagnostics, model interfaces, 3D geometry, research and engineering workflows.
+
